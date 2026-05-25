@@ -101,6 +101,8 @@ It is designed for one local listener experience: one private station, one local
 
 # Claudio FM 中文介绍
 
+![Claudio FM preview](assets/claudio-fm-preview.png)
+
 **Claudio FM 是一个 AI 私人电台。**
 
 它会像真正的 DJ 一样，根据你的品味和当下时刻，自动选歌、播报、串场和续播。

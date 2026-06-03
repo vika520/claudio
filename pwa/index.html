@@ -267,6 +267,11 @@ html, body {
 .play-btn:hover { transform: scale(1.04); }
 .play-btn:active { transform: scale(.96); }
 
+/* ── Radio homepage player ───────────────────────────────────────── */
+.radio-home {
+  display: none;
+}
+
 /* ── Request line input (floating) ───────────────────────────────── */
 .chat-bar {
   position: fixed; left: 16px; bottom: 16px;
@@ -329,6 +334,7 @@ html, body {
   padding: 3px; border-radius: 999px;
   background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08);
 }
+#skinControl { grid-template-columns: repeat(3, 1fr); }
 .segmented button {
   height: 30px; border: none; border-radius: 999px;
   background: transparent; color: rgba(255,255,255,.58);
@@ -575,6 +581,161 @@ html, body {
 }
 [data-skin="glass"] .swatch { border-color: transparent; }
 [data-skin="glass"] .swatch.active { border-color: rgba(255,255,255,.70); }
+
+/* ══════════════════════════════════════════════════════════════════
+   SKIN: Radio  —  minimalist object player
+   ══════════════════════════════════════════════════════════════════ */
+[data-skin="radio"] .stage {
+  background:
+    radial-gradient(ellipse at 18% 18%, rgba(85,126,170,.22) 0%, transparent 34%),
+    radial-gradient(ellipse at 82% 76%, rgba(255,43,59,.12) 0%, transparent 36%),
+    linear-gradient(145deg, rgb(250,249,246) 0%, rgb(237,241,244) 100%);
+}
+[data-skin="radio"] .fluid { display: none; }
+[data-skin="radio"] .bg-grain {
+  background:
+    radial-gradient(circle, rgba(18,26,36,.07) 0.5px, transparent 0.5px) 0 0 / 16px 16px,
+    radial-gradient(at 50% 60%, rgba(255,255,255,0) 0%, rgba(50,55,62,.08) 100%);
+}
+[data-skin="radio"] .bg-noise { opacity: .035; mix-blend-mode: multiply; }
+[data-skin="radio"] .card {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  border-radius: 0;
+  background: rgba(255,255,255,.68);
+  border: 0;
+  box-shadow: none;
+}
+[data-skin="radio"] .header {
+  display: none;
+}
+[data-skin="radio"] .body {
+  height: 100%;
+  margin-top: 0;
+  border-radius: 0;
+  background: transparent;
+}
+[data-skin="radio"] .meta,
+[data-skin="radio"] .transcript-wrap,
+[data-skin="radio"] .player {
+  display: none;
+}
+[data-skin="radio"] .radio-home {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  padding: clamp(18px, 6vmin, 48px);
+}
+.radio-player {
+  width: min(100%, 680px);
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 18px;
+  transition: transform .18s ease, filter .18s ease;
+  touch-action: manipulation;
+}
+.radio-player:hover {
+  transform: translateY(-2px) scale(1.012);
+  filter: drop-shadow(rgba(255,43,59,.18) 0 18px 26px);
+}
+.radio-player:active {
+  transform: translateY(1px) scale(.992);
+}
+.radio-player:focus-visible {
+  outline: 3px solid rgba(25,105,255,.7);
+  outline-offset: 8px;
+}
+.radio-player img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.radio-caption {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  min-height: 48px;
+  text-align: center;
+}
+.radio-title {
+  font-family: Doto, "Space Mono", monospace;
+  font-size: clamp(25px, 4vmin, 38px);
+  font-weight: 600;
+  color: rgb(23,28,32);
+}
+.radio-status {
+  min-height: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgb(104,111,116);
+}
+[data-skin="radio"] .tweaks-toggle,
+[data-skin="radio"] .chat-toggle,
+[data-skin="radio"] .fullscreen-toggle {
+  background: rgba(255,255,255,.74);
+  color: rgb(31,36,40);
+  border: 1px solid rgba(31,36,40,.10);
+  box-shadow: rgba(18,26,36,.14) 0 10px 24px, rgba(255,255,255,.9) 0 1px 0 inset;
+}
+[data-skin="radio"] .chat-toggle svg { color: rgb(255,43,59); }
+[data-skin="radio"] .chat-bar,
+[data-skin="radio"] .tweaks {
+  background: rgba(255,255,255,.84);
+  color: rgb(31,36,40);
+  border: 1px solid rgba(31,36,40,.10);
+  box-shadow: rgba(18,26,36,.16) 0 18px 42px, rgba(255,255,255,.9) 0 1px 0 inset;
+}
+[data-skin="radio"] #chat-input { color: rgb(31,36,40); }
+[data-skin="radio"] #chat-input::placeholder { color: rgba(31,36,40,.42); }
+[data-skin="radio"] #chat-send {
+  background: rgb(31,36,40);
+  color: rgb(255,255,255);
+}
+[data-skin="radio"] .tweaks h3,
+[data-skin="radio"] .tweak-row label { color: rgba(31,36,40,.62); }
+[data-skin="radio"] .segmented {
+  background: rgba(31,36,40,.07);
+  border-color: rgba(31,36,40,.08);
+}
+[data-skin="radio"] .segmented button { color: rgba(31,36,40,.55); }
+[data-skin="radio"] .segmented button.active {
+  background: rgb(31,36,40);
+  color: rgb(255,255,255);
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-player { transition: none; }
+}
+@media (max-width: 560px) {
+  [data-skin="radio"] .card {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+  [data-skin="radio"] .body { border-radius: 0; }
+  [data-skin="radio"] .radio-home {
+    padding: 18px 12px 56px;
+  }
+  .radio-player {
+    width: min(100%, 520px);
+  }
+  .radio-caption {
+    min-height: 44px;
+  }
+}
 </style>
 </head>
 <body>
@@ -610,6 +771,17 @@ html, body {
 
     <!-- Body -->
     <div class="body">
+      <!-- Radio homepage player -->
+      <section class="radio-home" id="radioHome">
+        <button class="radio-player" id="radioPlayer" type="button" aria-label="Start Claudio FM">
+          <img id="radioFrame" src="assets/radio-player/frame-00.png" alt="" aria-hidden="true" draggable="false">
+        </button>
+        <div class="radio-caption">
+          <div class="radio-title" id="radioTitle">Claudio FM</div>
+          <div class="radio-status" id="radioStatus" aria-hidden="true"></div>
+        </div>
+      </section>
+
       <!-- Meta -->
       <div class="meta">
         <div class="session-title" id="sessionTitle"></div>
@@ -719,6 +891,7 @@ html, body {
     <div class="segmented" id="skinControl" role="group" aria-label="Skin">
       <button type="button" data-skin-name="default" aria-pressed="true">Cosmic</button>
       <button type="button" data-skin-name="glass" aria-pressed="false">Glass</button>
+      <button type="button" data-skin-name="radio" aria-pressed="false">Radio</button>
     </div>
   </div>
   <div class="tweak-row">
@@ -779,6 +952,9 @@ const metaSub    = document.getElementById('metaSub');
 const metaSource = document.getElementById('metaSource');
 const metaSourceText = document.getElementById('metaSourceText');
 const transcriptScroll = document.getElementById('transcriptScroll');
+const radioPlayer = document.getElementById('radioPlayer');
+const radioFrame = document.getElementById('radioFrame');
+const radioStatus = document.getElementById('radioStatus');
 const chatBar    = document.getElementById('chatBar');
 const chatInput  = document.getElementById('chat-input');
 const chatSend   = document.getElementById('chat-send');
@@ -1022,6 +1198,130 @@ function fmt(s) {
   return `${m}:${String(sec).padStart(2,'0')}`;
 }
 
+/* ── Radio skin visual state ──────────────────────────────────────── */
+const RADIO_FRAME_BASE = 'assets/radio-player';
+const RADIO_TUNING_FRAMES = Array.from({ length: 13 }, (_, i) => i);
+const RADIO_PLAYING_FRAMES = [16, 20, 25, 30, 34, 37, 42];
+const RADIO_PRELOAD_FRAMES = [...new Set([...RADIO_TUNING_FRAMES, ...RADIO_PLAYING_FRAMES, 44, 55])];
+const reduceRadioMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let radioVisualState = 'idle';
+let radioFrameTimer = null;
+let radioLoopIndex = 0;
+
+function radioFrameUrl(frameNumber) {
+  return `${RADIO_FRAME_BASE}/frame-${String(frameNumber).padStart(2, '0')}.png`;
+}
+
+function preloadRadioFrames() {
+  RADIO_PRELOAD_FRAMES.forEach(frameNumber => {
+    const img = new Image();
+    img.src = radioFrameUrl(frameNumber);
+  });
+}
+
+function setRadioFrame(frameNumber) {
+  radioFrame.src = radioFrameUrl(frameNumber);
+}
+
+function stopRadioFrameLoop() {
+  if (radioFrameTimer) {
+    clearInterval(radioFrameTimer);
+    radioFrameTimer = null;
+  }
+}
+
+function startRadioFrameLoop(frames, intervalMs, { once = false, holdFrame = frames[frames.length - 1] } = {}) {
+  stopRadioFrameLoop();
+  radioLoopIndex = 0;
+
+  if (reduceRadioMotion.matches) {
+    setRadioFrame(holdFrame);
+    return;
+  }
+
+  setRadioFrame(frames[radioLoopIndex]);
+  radioFrameTimer = setInterval(() => {
+    radioLoopIndex += 1;
+    if (radioLoopIndex >= frames.length) {
+      if (once) {
+        stopRadioFrameLoop();
+        setRadioFrame(holdFrame);
+        return;
+      }
+      radioLoopIndex = 0;
+    }
+    setRadioFrame(frames[radioLoopIndex]);
+  }, intervalMs);
+}
+
+function setRadioVisualState(state) {
+  radioVisualState = state;
+  radioPlayer.classList.toggle('is-busy', state === 'tuning');
+
+  if (state === 'tuning') {
+    radioStatus.textContent = '';
+    radioPlayer.setAttribute('aria-label', 'Tuning Claudio FM');
+    startRadioFrameLoop(RADIO_TUNING_FRAMES, 90, { once: true, holdFrame: 12 });
+    return;
+  }
+
+  if (state === 'playing') {
+    radioStatus.textContent = '';
+    radioPlayer.setAttribute('aria-label', 'Pause Claudio FM');
+    startRadioFrameLoop(RADIO_PLAYING_FRAMES, 180);
+    return;
+  }
+
+  stopRadioFrameLoop();
+
+  if (state === 'paused') {
+    radioStatus.textContent = '';
+    radioPlayer.setAttribute('aria-label', 'Resume Claudio FM');
+    setRadioFrame(44);
+    return;
+  }
+
+  if (state === 'ended') {
+    radioStatus.textContent = '';
+    radioPlayer.setAttribute('aria-label', 'Start Claudio FM');
+    setRadioFrame(55);
+    return;
+  }
+
+  radioStatus.textContent = '';
+  radioPlayer.setAttribute('aria-label', 'Start Claudio FM');
+  setRadioFrame(0);
+}
+
+function syncRadioVisualFromAudio() {
+  if (!musicAudio.src) {
+    setRadioVisualState(startingRadio ? 'tuning' : 'idle');
+  } else if (!musicAudio.paused && !musicAudio.ended) {
+    setRadioVisualState('playing');
+  } else if (musicAudio.ended) {
+    setRadioVisualState('ended');
+  } else {
+    setRadioVisualState('paused');
+  }
+}
+
+async function handleRadioPlayerClick() {
+  if (startingRadio) return;
+  if (musicAudio.src && musicAudio.paused) {
+    musicAudio.play().catch(console.error);
+    return;
+  }
+  if (!musicAudio.paused) {
+    musicAudio.pause();
+    return;
+  }
+  await startRadio();
+}
+
+preloadRadioFrames();
+setRadioVisualState('idle');
+radioPlayer.addEventListener('click', handleRadioPlayerClick);
+
 /* ── Music player ─────────────────────────────────────────────────── */
 function setRadioStatus(status) {
   headerStatus.textContent = status;
@@ -1032,6 +1332,7 @@ function setRadioStatus(status) {
 function setPlaying(v) {
   iconPlay.style.display  = v ? 'none' : '';
   iconPause.style.display = v ? '' : 'none';
+  setRadioVisualState(v ? 'playing' : (musicAudio.src ? 'paused' : 'idle'));
   if (!ttsAudio.paused && !ttsAudio.ended) return;
   setRadioStatus(v ? 'Playing' : 'Paused');
 }
@@ -1044,7 +1345,10 @@ musicAudio.addEventListener('ended', () => {
     duration: musicAudio.duration,
     currentTime: musicAudio.currentTime,
   });
-  if (!playNext()) setRadioStatus('Paused');
+  if (!playNext()) {
+    setRadioStatus('Paused');
+    setRadioVisualState('ended');
+  }
 });
 musicAudio.addEventListener('loadedmetadata', () => {
   console.info('[music] metadata', {
@@ -1813,6 +2117,7 @@ async function startRadio() {
   if (startingRadio || musicAudio.src) return;
   startingRadio = true;
   playBtn.disabled = true;
+  setRadioVisualState('tuning');
   setRadioStatus('On Air');
   metaSub.textContent = 'Tuning Claudio FM…';
   try {
@@ -1820,10 +2125,12 @@ async function startRadio() {
   } catch (err) {
     console.error('[start-radio]', err);
     setRadioStatus('Paused');
+    setRadioVisualState('idle');
     metaSub.textContent = 'Could not start Claudio FM';
   } finally {
     playBtn.disabled = false;
     startingRadio = false;
+    if (musicAudio.src) syncRadioVisualFromAudio();
   }
 }
 
@@ -1852,11 +2159,11 @@ const skinControl = document.getElementById('skinControl');
 let currentSkin = localStorage.getItem('claudio:skin') || 'default';
 
 function applySkin(name) {
-  currentSkin = name === 'glass' ? 'glass' : 'default';
-  if (currentSkin === 'glass') {
-    document.documentElement.dataset.skin = 'glass';
-  } else {
+  currentSkin = ['default', 'glass', 'radio'].includes(name) ? name : 'default';
+  if (currentSkin === 'default') {
     delete document.documentElement.dataset.skin;
+  } else {
+    document.documentElement.dataset.skin = currentSkin;
   }
   localStorage.setItem('claudio:skin', currentSkin);
   skinControl.querySelectorAll('button').forEach(btn => {
@@ -1864,6 +2171,7 @@ function applySkin(name) {
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-pressed', String(active));
   });
+  syncRadioVisualFromAudio();
 }
 
 skinControl.addEventListener('click', e => {

@@ -782,42 +782,66 @@ html, body {
   pointer-events: none;
 }
 
+/* ON AIR 指示器：嵌入 session-title 行右侧，不单独占行 */
 [data-skin="radio"] .radio-info-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  flex-shrink: 0;
+  display: none;
 }
 .radio-info-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: rgb(255,43,59);
-  box-shadow: rgba(255,43,59,.5) 0 0 6px;
+  box-shadow: rgba(255,43,59,.5) 0 0 5px;
   animation: 1.2s ease-in-out 0s infinite pulse;
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity .3s;
+  transition: opacity .35s;
+  display: inline-block; vertical-align: middle;
+  margin-right: 6px;
 }
 .radio-info-dot.live { opacity: 1; }
-.radio-info-label {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: .12em; text-transform: uppercase;
-  color: rgba(31,36,40,.40);
-}
+.radio-info-label { display: none; }
 
 [data-skin="radio"] .meta {
   display: flex;
-  padding: 0 0 16px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 0 clamp(14px, 2vmin, 22px);
+  border-bottom: 1px solid rgba(31,36,40,.08);
+  margin-bottom: clamp(12px, 1.8vmin, 20px);
   flex-shrink: 0;
 }
-[data-skin="radio"] .session-title { color: rgba(31,36,40,.42); }
-[data-skin="radio"] .meta-name {
-  font-size: clamp(18px, 2.8vmin, 26px);
-  color: rgb(23,28,32);
+[data-skin="radio"] .session-title {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase;
+  color: rgba(31,36,40,.36);
+  display: flex; align-items: center;
 }
-[data-skin="radio"] .meta-sub { color: rgba(23,28,32,.52); }
-[data-skin="radio"] .meta-source { color: rgba(23,28,32,.38); }
-[data-skin="radio"] .meta-source:hover { color: rgb(23,28,32); }
+/* 把 ON AIR 红点注入到 session-title 前面 */
+[data-skin="radio"] .session-title::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgb(255,43,59);
+  margin-right: 7px; flex-shrink: 0;
+  opacity: 0;
+  transition: opacity .35s;
+}
+[data-skin="radio"].radio-is-live .session-title::before {
+  opacity: 1;
+  animation: 1.2s ease-in-out 0s infinite pulse;
+  box-shadow: rgba(255,43,59,.5) 0 0 5px;
+}
+[data-skin="radio"] .meta-name {
+  font-size: clamp(15px, 2vmin, 20px);
+  font-weight: 600;
+  color: rgb(18,22,26);
+  letter-spacing: -.02em;
+  line-height: 1.25;
+}
+[data-skin="radio"] .meta-sub {
+  font-size: 12px; font-weight: 400;
+  color: rgba(23,28,32,.44);
+  letter-spacing: .01em;
+}
+[data-skin="radio"] .meta-source { display: none; }
 
 [data-skin="radio"] .transcript-wrap {
   display: flex;
@@ -825,27 +849,43 @@ html, body {
   flex: 1 1 auto;
   min-height: 0;
   margin: 0;
-  background: rgba(255,255,255,.55);
-  border: 1px solid rgba(31,36,40,.07);
-  border-radius: 14px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
   position: relative;
 }
+[data-skin="radio"] .transcript-scroll {
+  padding: 2px 0 48px;
+}
 [data-skin="radio"] .transcript-fade {
-  background: linear-gradient(rgba(255,255,255,0) 0%, rgba(255,255,255,.88) 100%);
+  background: linear-gradient(rgba(250,249,246,0) 0%, rgb(250,249,246) 100%);
 }
-[data-skin="radio"] .turn-head { color: rgba(23,28,32,.42); }
-[data-skin="radio"] .turn-head .who { color: rgba(23,28,32,.60); }
-[data-skin="radio"] .turn.active .turn-head { color: rgba(23,28,32,.58); }
-[data-skin="radio"] .turn.active .turn-head .who { color: rgb(23,28,32); }
-[data-skin="radio"] .turn-body { color: rgb(23,28,32); }
-[data-skin="radio"] .word.said { color: rgb(23,28,32); }
+[data-skin="radio"] .turn {
+  margin-bottom: 14px;
+}
+[data-skin="radio"] .turn-head {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: rgba(23,28,32,.28);
+  margin-bottom: 3px;
+}
+[data-skin="radio"] .turn-head .who { color: inherit; }
+[data-skin="radio"] .turn.active .turn-head { color: rgba(23,28,32,.42); }
+[data-skin="radio"] .turn.active .turn-head .who { color: rgba(23,28,32,.60); }
+[data-skin="radio"] .turn-body {
+  font-size: 13px; line-height: 1.65; font-weight: 400;
+  color: rgba(23,28,32,.72);
+}
+[data-skin="radio"] .turn.active .turn-body { color: rgb(23,28,32); }
+[data-skin="radio"] .word.said { color: rgba(23,28,32,.72); }
+[data-skin="radio"] .turn.active .word.said { color: rgb(23,28,32); }
 [data-skin="radio"] .word.current {
-  color: rgb(10,95,55);
-  background: rgba(0,190,110,.13);
-  box-shadow: rgba(0,190,110,.22) 0 0 0 1px;
+  color: rgb(185,25,40);
+  background: rgba(255,43,59,.09);
+  box-shadow: rgba(255,43,59,.18) 0 0 0 1px;
 }
-[data-skin="radio"] .word.future { color: rgba(23,28,32,.30); }
+[data-skin="radio"] .word.future { color: rgba(23,28,32,.26); }
 
 @media (max-width: 768px) {
   [data-skin="radio"] .body { flex-direction: column; }
@@ -1530,6 +1570,7 @@ function setRadioStatus(status) {
   const isLive = ['On Air', 'Speaking', 'Playing'].includes(status);
   dotLive.style.display = isLive ? '' : 'none';
   radioInfoDot.classList.toggle('live', isLive);
+  document.documentElement.classList.toggle('radio-is-live', isLive);
   window._setWavePlaying(['Speaking', 'Playing'].includes(status));
 }
 

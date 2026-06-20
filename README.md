@@ -117,6 +117,26 @@ Open:
 http://localhost:8080
 ```
 
+## Recent Updates
+
+- **Cookie handling rewrite**: trimming the saved login cookie to just
+  `MUSIC_U` + `__csrf` so `/login/status` actually recognizes the VIP account.
+  Previously the full QR-login blob made Netease report an anonymous user and
+  every track fell back to a 30-second preview.
+- **Clear play history button**: a new button in the Tweaks drawer that wipes
+  the local `plays` table. Useful when the 24-hour repeat cooldown has run out
+  of tracks.
+- **Heart / favorite button**: while a track is playing, click the heart icon
+  to add the song to your Netease Cloud Music favorites.
+- **Chinese voice preset**: added a 鸡汤妹 (`zh_female_jitangmei_uranus_bigtts`)
+  Volcengine voice on the `seed-tts-2.0` resource for the Chinese DJ persona.
+- **Startup ordering fix**: `scripts/start.js` now waits for the
+  NeteaseCloudMusicApi sidecar's `/inner/version` before spawning Claudio, and
+  uses `dotenv.config({ override: true })` so the project's `.env` always wins
+  over shell-injected variables.
+- **Bridge / segue reliability**: a stack of fixes around the segment broadcast
+  pipeline so DJ intros and bridges between tracks don't drop silently.
+
 ## Current Version
 
 `v1.1.1` is the single-user radio version.
@@ -240,6 +260,22 @@ yarn start
 ```text
 http://localhost:8080
 ```
+
+## 最近更新
+
+- **Cookie 处理重写**:扫码保存的 cookie 会被精简为 `MUSIC_U` + `__csrf`,
+  否则网易云会把账号识别为匿名用户,每首歌只能播放 30 秒试听片段。
+- **一键清除播放历史**:Tweaks 抽屉新增"Clear play history"按钮,清空
+  本地 `plays` 表。在 24 小时去重冷却把曲子池用光时很管用。
+- **歌曲收藏按钮(❤️)**:正在播放的歌曲旁点击红心,即可同步到网易云
+  音乐的"我的收藏"。
+- **中文音色预设**:为中文 DJ 增加豆包语音 `seed-tts-2.0` 资源下的
+  鸡汤妹音色(`zh_female_jitangmei_uranus_bigtts`)。
+- **启动顺序修复**:`scripts/start.js` 现在会先等网易云 sidecar 的
+  `/inner/version` 返回,再启动 Claudio;同时 `dotenv.config({ override: true })`
+  让项目 `.env` 始终优先于 shell 注入的环境变量。
+- **Bridge / 串场稳定性**:修复了 segment 广播管道里的一连串问题,
+  避免 DJ 开场和歌曲间串场静默丢失。
 
 ## 当前版本
 

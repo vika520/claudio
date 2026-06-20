@@ -2,6 +2,21 @@
 
 **Claudio FM is a private AI radio station.**
 
+> **Attribution / 致谢**
+>
+> This project is a fork / downstream of
+> [**bingyanglu/Claudio-FM**](https://github.com/bingyanglu/Claudio-FM). The
+> first eight commits (and most of the original design) come from that repo.
+> If you are looking for the upstream project, please head there first.
+>
+> 本项目 fork 自 [**bingyanglu/Claudio-FM**](https://github.com/bingyanglu/Claudio-FM),
+> 前 8 个 commit 与主要设计来自该上游仓库。原始项目请前往该链接。
+>
+> Recent changes in this fork (cookie trim, clear-play-history, heart/favorite
+> button, 鸡汤妹 Chinese voice preset, startup ordering, bridge reliability
+> fixes, deployment hardening) are listed in [Recent Updates](#recent-updates)
+> below.
+
 It acts like a real DJ: it chooses music, speaks on air, bridges between songs, and keeps the station going based on your taste and the current moment.
 
 Claudio is not a playlist generator or a chatbot that waits for commands. Open it, press play, and it begins programming a small radio show for you. It reads the hour, remembers your recent listening, follows your music taste, and turns each DJ line into spoken audio before the next song comes in.

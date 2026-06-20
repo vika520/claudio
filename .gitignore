@@ -24,3 +24,10 @@ skills/netease-music/data/*
 
 # Claudio local Netease login state. May contain cookies and private QR pages.
 data/netease/*
+
+# Local backups and debug artifacts (may contain secrets)
+.env.bak
+.env.local
+*.bak
+heart_debug.txt
+refresh-login.js

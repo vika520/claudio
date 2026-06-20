@@ -82,15 +82,44 @@ function hasNeteaseCookie(cookie) {
   return typeof cookie === 'string' && /MUSIC_U=|__csrf=/.test(cookie);
 }
 
+// NeteaseCloudMusicApi stores the full cookie blob that the QR-login endpoint
+// returns — including a lot of telemetry/marketing cookies (MUSIC_R_U,
+// MUSIC_R_T, MUSIC_A_T, MUSIC_SNS, NMTID, …) that Netease's backend treats as
+// invalid when sent together with MUSIC_U, so /login/status reports anonymous.
+// Strip everything down to the two cookies the API actually checks.
+const ESSENTIAL_COOKIE_NAMES = ['MUSIC_U', '__csrf'];
+
+function trimCookie(rawCookie) {
+  if (!rawCookie) return '';
+  const parts = String(rawCookie)
+    .split(';')
+    .map(part => part.trim())
+    .filter(Boolean);
+  const picked = [];
+  const seen = new Set();
+  for (const part of parts) {
+    const eqIndex = part.indexOf('=');
+    if (eqIndex <= 0) continue;
+    const name = part.slice(0, eqIndex);
+    if (!ESSENTIAL_COOKIE_NAMES.includes(name)) continue;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    picked.push(part);
+  }
+  return picked.join('; ');
+}
+
 function resolveCookie() {
   const envCookie = process.env.NETEASE_COOKIE;
   if (hasNeteaseCookie(envCookie)) {
-    return { cookie: envCookie, source: 'env', path: null };
+    const cookie = trimCookie(envCookie);
+    return { cookie, source: 'env', path: null };
   }
 
   const localConfig = readLocalConfig();
   if (hasNeteaseCookie(localConfig.cookie)) {
-    return { cookie: localConfig.cookie, source: 'local', path: LOCAL_CONFIG_PATH };
+    const cookie = trimCookie(localConfig.cookie);
+    return { cookie, source: 'local', path: LOCAL_CONFIG_PATH };
   }
 
   return { cookie: '', source: 'anonymous', path: null };
@@ -259,7 +288,8 @@ async function bootstrapNeteaseLogin({ baseUrl = neteaseBaseUrl(), required = fa
   });
 
   if (result.ok) {
-    const saved = writeLocalConfig({ cookie: result.cookie, source: 'qr-login' });
+    const trimmedCookie = trimCookie(result.cookie);
+    const saved = writeLocalConfig({ cookie: trimmedCookie, source: 'qr-login' });
     console.log(`[netease-login] Login succeeded. Cookie saved to ${LOCAL_CONFIG_PATH}: ${maskSecret(saved.cookie)}`);
     return { ok: true, source: 'qr-login' };
   }

@@ -1,4 +1,8 @@
-require('dotenv').config();
+// override:true ensures .env values win over shell-injected env vars
+// (e.g. DEEPSEEK_API_KEY exported in a user's shell profile). Without this,
+// an env var already set in the shell silently takes precedence over the
+// project's .env, leading to the wrong LLM provider or stale credentials.
+require('dotenv').config({ override: true });
 
 const { spawn } = require('child_process');
 const {
@@ -11,6 +15,38 @@ const {
 const DEFAULT_NETEASE_COMMAND = 'npx';
 const DEFAULT_NETEASE_ARGS = ['NeteaseCloudMusicApi@latest'];
 const DEFAULT_NETEASE_READY_TIMEOUT_MS = 60000;
+
+// Resolve a local NeteaseCloudMusicApi install. Prefer a sibling project at
+// ../NeteaseCloudMusicApi (this repo's layout); fall back to the published
+// `NeteaseCloudMusicApi` module if one is installed under node_modules.
+const path = require('path');
+const SiblingNeteaseApp = path.resolve(__dirname, '..', '..', 'NeteaseCloudMusicApi', 'node_modules', 'NeteaseCloudMusicApi', 'app.js');
+const fs = require('fs');
+
+function resolveLocalNeteaseEntry() {
+  if (fs.existsSync(SiblingNeteaseApp)) return SiblingNeteaseApp;
+  const localModuleApp = path.resolve(__dirname, '..', 'node_modules', 'NeteaseCloudMusicApi', 'app.js');
+  if (fs.existsSync(localModuleApp)) return localModuleApp;
+  return null;
+}
+
+function resolveNeteaseSidecar() {
+  const localEntry = resolveLocalNeteaseEntry();
+  if (localEntry) {
+    return {
+      command: process.execPath,
+      args: [localEntry],
+      source: 'local',
+    };
+  }
+  const command = process.env.NETEASE_SIDECAR_COMMAND || DEFAULT_NETEASE_COMMAND;
+  const args = splitArgs(process.env.NETEASE_SIDECAR_ARGS);
+  return {
+    command,
+    args: args.length ? args : DEFAULT_NETEASE_ARGS,
+    source: 'npx',
+  };
+}
 
 const children = new Set();
 let shuttingDown = false;
@@ -186,17 +222,17 @@ async function startNeteaseIfNeeded() {
     return { connected: true, baseUrl, required };
   }
 
-  const command = process.env.NETEASE_SIDECAR_COMMAND || DEFAULT_NETEASE_COMMAND;
-  const args = splitArgs(process.env.NETEASE_SIDECAR_ARGS);
-  const finalArgs = args.length ? args : DEFAULT_NETEASE_ARGS;
+  const sidecarSpec = resolveNeteaseSidecar();
+  const command = sidecarSpec.command;
+  const args = sidecarSpec.args;
   const timeoutMs = Number(process.env.NETEASE_READY_TIMEOUT_MS || DEFAULT_NETEASE_READY_TIMEOUT_MS);
   const sidecarEnv = {
     ...cleanNpmEnv(process.env),
     PORT: neteasePort(baseUrl),
   };
 
-  console.log(`[start] Starting Netease sidecar: ${command} ${finalArgs.join(' ')} (PORT=${sidecarEnv.PORT})`);
-  const sidecar = spawnChild('netease', command, finalArgs, { env: sidecarEnv });
+  console.log(`[start] Starting Netease sidecar (${sidecarSpec.source}): ${command} ${args.join(' ')} (PORT=${sidecarEnv.PORT})`);
+  const sidecar = spawnChild('netease', command, args, { env: sidecarEnv });
 
   const startedStatus = await waitForNetease(baseUrl, timeoutMs);
   if (startedStatus.connected) {

@@ -30,6 +30,12 @@ function addPlay({ title, artist, source_url }) {
   ).run(title, artist, Date.now(), source_url || '');
 }
 
+function clearPlays() {
+  const before = db.prepare('SELECT COUNT(*) AS c FROM plays').get().c;
+  db.prepare('DELETE FROM plays').run();
+  return { deleted: before };
+}
+
 function recentPlays(limit = 20) {
   return db.prepare(
     'SELECT title, artist, played_at, source_url FROM plays ORDER BY played_at DESC LIMIT ?'
@@ -60,4 +66,4 @@ function getPref(key) {
   try { return JSON.parse(row.value); } catch { return row.value; }
 }
 
-module.exports = { addPlay, recentPlays, addMessage, recentMessages, setPref, getPref };
+module.exports = { addPlay, clearPlays, recentPlays, addMessage, recentMessages, setPref, getPref };

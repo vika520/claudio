@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -329,6 +329,17 @@ html, body {
 .tweak-row:last-child { margin-bottom: 0; }
 .tweak-row label { font-size: 12px; color: rgba(255,255,255,.7); display: flex; justify-content: space-between; }
 .tweak-row input[type="range"] { width: 100%; accent-color: rgb(255,255,255); }
+.tweak-action-btn {
+  appearance: none; cursor: pointer;
+  padding: 8px 14px; border-radius: 999px;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.9); font: inherit; font-size: 12px; letter-spacing: .02em;
+  transition: background .15s, border-color .15s, color .15s;
+  align-self: flex-start;
+}
+.tweak-action-btn:hover { background: rgba(255,80,80,.16); border-color: rgba(255,120,120,.45); color: rgb(255,210,210); }
+.tweak-action-btn:disabled { opacity: .55; cursor: progress; }
+.tweak-action-btn[data-state="ok"] { background: rgba(120,200,140,.18); border-color: rgba(140,220,160,.45); color: rgb(200,240,210); }
 .segmented {
   display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
   padding: 3px; border-radius: 999px;
@@ -949,6 +960,28 @@ html, body {
     min-height: 44px;
   }
 }
+
+/* 鈹€鈹€ Like button 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */
+.meta-like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgb(138,138,144);
+  padding: 0 0 0 8px;
+  font-size: 13px;
+  vertical-align: middle;
+  transition: color .2s, transform .2s;
+}
+.meta-like-btn:hover {
+  color: rgb(220,80,80);
+  transform: scale(1.15);
+}
+.meta-like-btn.liked {
+  color: rgb(220,80,80);
+}
+.meta-like-btn.liked svg path {
+  fill: rgb(220,80,80);
+}
 </style>
 </head>
 <body>
@@ -1025,8 +1058,22 @@ html, body {
                 <path d="M3 2h5v5"/><path d="M8 2L2.5 7.5"/>
               </svg>
             </span>
+            <button class="meta-like-btn" id="metaLikeBtn" title="收藏到网易云" style="display:none; background:none; border:none; cursor:pointer; color:rgb(220,80,80); padding:0 0 0 8px; font-size:13px; transition:color .2s,transform .2s; vertical-align:middle; flex-shrink:0;">
+              <svg id="heartIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </button>
           </div>
         </div><!-- .meta -->
+
+        <!-- Queue / Playlist -->
+        <div class="queue-wrap" id="queueWrap" style="display:none;">
+          <div class="queue-header">
+            <span class="queue-title">Up Next</span>
+            <span class="queue-count" id="queueCount">0</span>
+          </div>
+          <div class="queue-list" id="queueList"></div>
+        </div>
 
         <!-- Transcript (existing) -->
         <div class="transcript-wrap">
@@ -1139,6 +1186,10 @@ html, body {
     <input type="range" id="inMusicVolume" min="0" max="100" value="100">
   </div>
   <div class="tweak-row">
+    <label>Play history</label>
+    <button type="button" id="clearPlaysBtn" class="tweak-action-btn" title="Forget every track played in the last 24h so Claudio can resurface them">Clear play history</button>
+  </div>
+  <div class="tweak-row">
     <label>Header tone</label>
     <div class="swatches" id="swatches">
       <div class="swatch active" data-bg="linear-gradient(rgb(12,12,14) 0%, rgb(22,22,26) 100%)" style="background:rgb(12,12,14)"></div>
@@ -1179,6 +1230,47 @@ const headerTime   = document.getElementById('headerTime');
 const metaName   = document.getElementById('metaName');
 const metaSub    = document.getElementById('metaSub');
 const metaSource = document.getElementById('metaSource');
+const heartBtn = document.getElementById('metaLikeBtn');
+const heartIcon = document.getElementById('heartIcon');
+let currentSongId = null;
+const likedSongIds = new Set();
+const likedSongKeys = new Set();
+
+function setHeartLiked(songId, liked) {
+  if (songId && liked) likedSongIds.add(songId);
+  if (currentSongId && likedSongIds.has(currentSongId)) {
+    heartBtn.classList.add('liked');
+    heartIcon.querySelector('path').setAttribute('fill', 'rgb(220,80,80)');
+  } else {
+    heartBtn.classList.remove('liked');
+    heartIcon.querySelector('path').setAttribute('fill', 'none');
+  }
+}
+
+async function likeCurrentSong() {
+  const track = queue[queueIdx];
+  const songId = track?.id || null;
+  const title = track?.title || track?.query || '';
+  const artist = track?.artist || '';
+  if (!songId && !title) return;
+  try {
+    const res = await fetch('/api/favorite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ songId, title, artist }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      if (songId) likedSongIds.add(songId);
+      const key = title + '::' + artist;
+      if (key !== '::') likedSongKeys.add(key);
+      heartBtn.classList.add('liked');
+      heartIcon.querySelector('path').setAttribute('fill', 'rgb(220,80,80)');
+      heartBtn.style.transform = 'scale(1.3)';
+      setTimeout(() => { heartBtn.style.transform = ''; }, 200);
+    }
+  } catch (err) { console.error('[like]', err); }
+}
 const metaSourceText = document.getElementById('metaSourceText');
 const transcriptScroll = document.getElementById('transcriptScroll');
 const radioPlayer = document.getElementById('radioPlayer');
@@ -2084,9 +2176,21 @@ function playTrack(track) {
     metaSourceText.textContent = '';
     metaSource.style.display = 'none';
   }
-  musicAudio.src = track.streamUrl;
-  musicAudio.volume = (!ttsAudio.paused && !ttsAudio.ended) ? duckedMusicVolume() : baseMusicVolume;
-  musicAudio.play().catch(console.error);
+  const ttsActive = ttsAudio.src && !ttsAudio.paused && !ttsAudio.ended;
+  musicAudio.volume = ttsActive ? duckedMusicVolume() : baseMusicVolume;
+
+  // 如果音频正在播放，先暂停并等待，避免 AbortError
+  if (!musicAudio.paused && !musicAudio.ended) {
+    musicAudio.pause();
+  }
+
+  // 使用 setTimeout 确保音频资源完全释放后再加载新资源
+  setTimeout(() => {
+    musicAudio.src = track.streamUrl;
+    musicAudio.load();
+    const promise = musicAudio.play();
+    if (promise) promise.catch(err => console.error('[music play]', err));
+  }, 50);
 }
 
 function playNext() {
@@ -2114,6 +2218,18 @@ function playNext() {
       speakSegment(track.introTranscript, track.introTtsUrl, () => playTrack(track));
     } else {
       playTrack(track);
+    }
+    // Show like button and track current song ID (always, after TTS setup)
+    currentSongId = track.id || null;
+    heartBtn.style.display = '';
+    if (currentSongId) {
+      setHeartLiked(currentSongId, likedSongIds.has(currentSongId));
+    } else {
+      const key = (track.title || track.query || '') + '::' + (track.artist || '');
+      if (key !== '::' && likedSongKeys.has(key)) {
+        heartBtn.classList.add('liked');
+        heartIcon.querySelector('path').setAttribute('fill', 'rgb(220,80,80)');
+      }
     }
     maybeRefillAhead();
     return true;
@@ -2451,6 +2567,38 @@ djLanguageControl.addEventListener('click', e => {
   if (!button) return;
   setDjLanguage(button.dataset.lang);
 });
+
+heartBtn.addEventListener('click', (e) => { e.stopPropagation(); likeCurrentSong(); });
+
+async function clearPlayHistory() {
+  const btn = document.getElementById('clearPlaysBtn');
+  if (!btn || btn.disabled) return;
+  if (!confirm('Forget every track played in the last 24 hours?\n\nClaudio will be free to resurface them right away.')) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Clearing…';
+  try {
+    const res = await fetch('/api/plays/clear', { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    btn.textContent = `Cleared ${data.deleted} tracks`;
+    btn.dataset.state = 'ok';
+    setTimeout(() => {
+      btn.textContent = originalLabel;
+      delete btn.dataset.state;
+      btn.disabled = false;
+    }, 2400);
+  } catch (err) {
+    console.error('[clear-plays]', err);
+    btn.textContent = 'Failed — try again';
+    setTimeout(() => {
+      btn.textContent = originalLabel;
+      btn.disabled = false;
+    }, 2400);
+  }
+}
+
+document.getElementById('clearPlaysBtn')?.addEventListener('click', clearPlayHistory);
 
 document.getElementById('swatches').addEventListener('click', e => {
   const sw = e.target.closest('.swatch');

@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -9,9 +9,10 @@ const { route } = require('./router');
 const { buildPrompt, buildProgramStartPrompt, buildColdOpenForTracksPrompt, buildMusicRefillPrompt, buildBridgePrompt } = require('./context');
 const { callClaude } = require('./claude');
 const { synthesize } = require('./tts');
-const { getTrack } = require('./music');
-const { addPlay, addMessage, recentPlays, getPref } = require('./state');
+const { getTrack, likeSong } = require('./music');
+const { addPlay, clearPlays, addMessage, recentPlays, getPref } = require('./state');
 const scheduler = require('./scheduler');
+const { bootstrapNeteaseLogin } = require('./netease-session');
 
 const app = express();
 const server = http.createServer(app);
@@ -212,7 +213,21 @@ function normalizeSegments(result, tracks, speechOnly, failedTracks) {
   }));
 }
 
-async function synthesizeSegments(segments) {
+function getTtsVoiceForLanguage(language) {
+  if (normalizeDjLanguage(language) === 'zh') {
+    return {
+      voiceType: process.env.VOLCENGINE_TTS_VOICE_TYPE_ZH || process.env.VOLCENGINE_TTS_VOICE_TYPE || 'zh_female_qingxinbabel_tts_common',
+      resourceId: process.env.VOLCENGINE_TTS_RESOURCE_ID_ZH || process.env.VOLCENGINE_TTS_RESOURCE_ID || 'volc.service_type.10029',
+    };
+  }
+  return {
+    voiceType: process.env.VOLCENGINE_TTS_VOICE_TYPE || 'en_female_nadia_tips_emo_v2_mars_bigtts',
+    resourceId: process.env.VOLCENGINE_TTS_RESOURCE_ID || 'volc.service_type.10029',
+  };
+}
+
+async function synthesizeSegments(segments, djLanguage = 'en') {
+  const { voiceType, resourceId } = getTtsVoiceForLanguage(djLanguage);
   for (const segment of segments) {
     if (segment.type === 'silence' || !segment.text) {
       segment.status = 'silent';
@@ -220,7 +235,7 @@ async function synthesizeSegments(segments) {
     }
     try {
       console.log(`[TTS] 合成 ${segment.type} (${segment.text.length} 字): "${segment.text.slice(0, 50)}…"`);
-      const f = await synthesize(segment.text);
+      const f = await synthesize(segment.text, { voiceType, resourceId });
       segment.ttsUrl = '/api/tts/' + path.basename(f);
       segment.status = 'ready';
       console.log(`[TTS] ${segment.type} 完成 → ${path.basename(f)}`);
@@ -388,6 +403,7 @@ async function resolveRequestedTracks(requestedTracks, options = {}) {
         title: track.title || requested.title || query,
         artist: track.artist || requested.artist || '',
         streamUrl: track.streamUrl,
+        id: track.id || null,
       };
       const skip = shouldSkipTrack(payloadTrack, avoidState);
       if (skip.skip) {
@@ -504,7 +520,7 @@ async function runProgramStartJob(job) {
       ...coldOpenSegments,
     ],
   };
-  const segments = await synthesizeSegments(normalizeSegments(coldOpenResult, tracks, false, failedTracks));
+  const segments = await synthesizeSegments(normalizeSegments(coldOpenResult, tracks, false, failedTracks), job.djLanguage);
 
   stationState.programId = programId;
   stationState.sessionTitle = result.title || '';
@@ -576,7 +592,7 @@ async function runBridgeGenerationJob(job) {
     new Array(Math.max(job.beforeTrackIndex + 1, 1)).fill(null),
     false,
     []
-  ));
+  ), job.djLanguage);
   segments = segments.filter(segment =>
     segment.position === 'between_tracks' &&
     segment.afterTrackIndex === job.afterTrackIndex &&
@@ -621,7 +637,7 @@ async function runRadioSegment(userInput, intent = {}, skipHistory = false) {
   const requestedTracks = speechOnly ? [] : (result.play || []);
   const { tracks, failedTracks } = await resolveRequestedTracks(requestedTracks);
 
-  const segments = await synthesizeSegments(normalizeSegments(result, tracks, speechOnly, failedTracks));
+  const segments = await synthesizeSegments(normalizeSegments(result, tracks, speechOnly, failedTracks), intent.djLanguage);
   applyLegacyTrackIntrosFromSegments(tracks, segments);
   const firstPlayableSegment = segments.find(s => s.ttsUrl && s.text && s.type !== 'silence');
   const announcement = buildAnnouncement({ ...result, segments }, tracks, failedTracks, speechOnly);
@@ -773,6 +789,30 @@ app.post('/api/tts/caller', async (req, res) => {
   }
 });
 
+app.post('/api/favorite', async (req, res) => {
+  const { songId, title, artist } = req.body || {};
+  if (!songId) return res.status(400).json({ error: 'songId required' });
+  try {
+    const ok = await likeSong(songId);
+    console.log('[收藏] ' + (ok ? 'ok' : 'fail') + ' ' + (title || songId));
+    res.json({ ok, title, artist });
+  } catch (err) {
+    console.error('[收藏]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/plays/clear', (req, res) => {
+  try {
+    const result = clearPlays();
+    console.log(`[plays] 清空历史: 删除 ${result.deleted} 条`);
+    res.json({ ok: true, deleted: result.deleted });
+  } catch (err) {
+    console.error('[plays] clear failed:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Serve cached TTS files
 app.get('/api/tts/:filename', (req, res) => {
   const file = path.join(__dirname, 'cache/tts', req.params.filename);
@@ -782,6 +822,20 @@ app.get('/api/tts/:filename', (req, res) => {
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 scheduler.init(broadcast, runRadioSegment);
+
+// 启动时尝试网易云登录引导
+(async () => {
+  try {
+    const loginResult = await bootstrapNeteaseLogin();
+    if (loginResult.ok) {
+      console.log(`[netease-login] 登录成功，来源: ${loginResult.source}`);
+    } else {
+      console.log(`[netease-login] 未登录，将以匿名模式使用网易云 API`);
+    }
+  } catch (err) {
+    console.warn('[netease-login] 登录引导失败:', err.message);
+  }
+})();
 
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {

@@ -1,4 +1,4 @@
-const DEFAULT_TIMEOUT_MS = 8000;
+﻿const DEFAULT_TIMEOUT_MS = 8000;
 const { getNeteaseConfig, redactSensitiveText } = require('./netease-session');
 
 function getConfig() {
@@ -137,4 +137,15 @@ async function getTrack(query) {
   }
 }
 
-module.exports = { getStreamUrl, getTrack, searchSong, getLyrics };
+
+async function likeSong(songId) {
+  if (!songId) return false;
+  try {
+    const data = await requestJson('/like', { id: songId, alg: 'itembased', time: 25 });
+    return data?.code === 200;
+  } catch (err) {
+    console.warn('[netease] like failed:', err.message);
+    return false;
+  }
+}
+module.exports = { getStreamUrl, getTrack, searchSong, getLyrics, likeSong, requestJson };

@@ -6,11 +6,14 @@ const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek
 const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash';
 const DEEPSEEK_REASONING_EFFORT = process.env.DEEPSEEK_REASONING_EFFORT || '';
 const DEEPSEEK_THINKING = process.env.DEEPSEEK_THINKING || '';
+const MINIMAX_BASE_URL = process.env.MINIMAX_BASE_URL || 'https://api.minimax.chat/v1';
+const MINIMAX_MODEL = process.env.MINIMAX_MODEL || 'MiniMax-Text-01';
 
 async function generateJson(prompt, options = {}) {
   const provider = options.provider || DEFAULT_PROVIDER;
   if (provider === 'deepseek') return callDeepSeek(prompt, options);
   if (provider === 'claude_cli') return callClaudeCli(prompt, options);
+  if (provider === 'minimax') return callMinimax(prompt, options);
   throw new Error(`Unsupported LLM_PROVIDER: ${provider}`);
 }
 
@@ -48,6 +51,39 @@ async function callDeepSeek(prompt, options = {}) {
   const raw = completion.choices?.[0]?.message?.content?.trim() || '';
   const parsed = parseResponse(raw);
   logParsedResponse('deepseek', elapsed, parsed, raw);
+  return parsed;
+}
+
+async function callMinimax(prompt, options = {}) {
+  if (!process.env.MINIMAX_API_KEY) {
+    throw new Error('MINIMAX_API_KEY not set');
+  }
+
+  const OpenAI = await loadOpenAI();
+  const client = new OpenAI({
+    baseURL: process.env.MINIMAX_BASE_URL || MINIMAX_BASE_URL,
+    apiKey: process.env.MINIMAX_API_KEY,
+  });
+  const model = options.model || process.env.MINIMAX_MODEL || MINIMAX_MODEL;
+  const startAt = Date.now();
+  console.log(`[LLM:minimax] 调用中，model ${model}，prompt ${prompt.length} 字符…`);
+
+  const completion = await withTimeout(
+    client.chat.completions.create({
+      model,
+      messages: [
+        { role: 'system', content: 'You are Claudio FM. Return strict JSON only.' },
+        { role: 'user', content: prompt },
+      ],
+      stream: false,
+    }),
+    options.timeoutMs || DEFAULT_TIMEOUT_MS,
+    `Minimax request timed out after ${Math.round((options.timeoutMs || DEFAULT_TIMEOUT_MS) / 1000)}s`
+  );
+  const elapsed = ((Date.now() - startAt) / 1000).toFixed(1);
+  const raw = completion.choices?.[0]?.message?.content?.trim() || '';
+  const parsed = parseResponse(raw);
+  logParsedResponse('minimax', elapsed, parsed, raw);
   return parsed;
 }
 

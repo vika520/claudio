@@ -821,6 +821,9 @@ app.get('/api/tts/:filename', (req, res) => {
 });
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
+const { refreshRecommendations } = require('./qq-music');
+const cron = require('node-cron');
+
 scheduler.init(broadcast, runRadioSegment);
 
 // 启动时尝试网易云登录引导
@@ -835,7 +838,27 @@ scheduler.init(broadcast, runRadioSegment);
   } catch (err) {
     console.warn('[netease-login] 登录引导失败:', err.message);
   }
+
+  // 启动时拉一次 QQ 推荐(失败也不影响主服务)
+  try {
+    const r = await refreshRecommendations();
+    if (r.error) console.warn('[qq-recommend] 跳过:', r.error);
+    else console.log(`[qq-recommend] 拉取 ${r.count} 首到 data/netease/qq-recommendations.json`);
+  } catch (err) {
+    console.warn('[qq-recommend] 启动拉取失败:', err.message);
+  }
 })();
+
+// 每天 9 点刷新一次 QQ 每日推荐
+cron.schedule('0 9 * * *', async () => {
+  try {
+    const r = await refreshRecommendations();
+    if (r.error) console.warn('[qq-recommend] 定时刷新失败:', r.error);
+    else console.log(`[qq-recommend] 定时刷新 ${r.count} 首`);
+  } catch (err) {
+    console.warn('[qq-recommend] 定时刷新异常:', err.message);
+  }
+});
 
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {

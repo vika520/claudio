@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { recentPlays, recentMessages } = require('./state');
+const { recommendationsSummary } = require('./qq-music');
 
 function readFile(filePath) {
   try { return fs.readFileSync(filePath, 'utf-8'); } catch { return ''; }
@@ -21,6 +22,10 @@ function sharedContext({ includeTaste = true, includeDialog = true, recentPlayLi
   const dialogText = messages.length
     ? messages.map(m => `${m.role === 'user' ? '用户' : 'Claudio'}: ${m.content}`).join('\n')
     : '';
+  const qqList = recommendationsSummary();
+  const qqBlock = qqList
+    ? `# QQ 音乐每日 30 首推荐（来自 QQ 音乐官方接口，今日刷新）\n优先从以下清单中选曲，这样用户在手机 QQ 音乐 App 上能直接收藏。找不到时再自由推荐。\n\n${qqList}`
+    : '';
 
   return [
     persona,
@@ -29,6 +34,7 @@ function sharedContext({ includeTaste = true, includeDialog = true, recentPlayLi
     moodRules ? `# 情绪规则\n${moodRules}` : '',
     `# 环境\n${env}`,
     `# 最近播放历史（最近${recentPlayLimit}首）\n${historyText}`,
+    qqBlock,
     dialogText ? `# 最近 on-air / call-in 历史\n${dialogText}` : '',
   ].filter(Boolean).join('\n\n');
 }

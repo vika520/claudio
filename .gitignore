@@ -31,3 +31,5 @@ data/netease/*
 *.bak
 heart_debug.txt
 refresh-login.js
+user/*.bak
+user/*.bak.*

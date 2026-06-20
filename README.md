@@ -44,6 +44,32 @@ The creative inspiration for Claudio FM came from the Douyin creator **mmguo**.
 
 ## Running Locally
 
+Claudio FM relies on a sibling project for streaming music from Netease:
+
+**`NeteaseCloudMusicApi`** — a Node.js service that exposes the Netease
+Web/Cloud API over HTTP on port `3000`. This repo does **not** vendor it; you
+need to place it next to `claudio-fm/`:
+
+```bash
+# from the parent directory that will hold both projects
+git clone https://github.com/Binaryify/NeteaseCloudMusicApi.git
+cd NeteaseCloudMusicApi && npm install && cd ..
+```
+
+The expected layout is:
+
+```text
+parent-dir/
+├── claudio-fm/                 # this repo
+└── NeteaseCloudMusicApi/       # the sidecar cloned above
+    └── node_modules/...
+```
+
+`scripts/start.js` looks for `../NeteaseCloudMusicApi/node_modules/NeteaseCloudMusicApi/app.js`
+first, waits for its `/inner/version` endpoint, then launches Claudio. If the
+sidecar is not present, it falls back to `npx NeteaseCloudMusicApi@latest`
+(requires `npx` on `PATH` and a working internet connection).
+
 Install dependencies:
 
 ```bash
@@ -142,6 +168,32 @@ Claudio 想做的是让音乐“有人主持”。
 Claudio FM 的创意灵感来自抖音博主 **mmguo**。
 
 ## 本地运行
+
+Claudio FM 依赖一个同级的子项目来获取网易云音乐流：
+
+**`NeteaseCloudMusicApi`** —— 一个 Node.js 服务,把网易云 Web/Cloud API
+通过 HTTP 暴露在 `3000` 端口。这个仓库**不**自带它,你需要把它放在
+`claudio-fm/` 同级目录:
+
+```bash
+# 在打算放两个项目的上级目录里执行
+git clone https://github.com/Binaryify/NeteaseCloudMusicApi.git
+cd NeteaseCloudMusicApi && npm install && cd ..
+```
+
+期望的目录布局:
+
+```text
+parent-dir/
+├── claudio-fm/                 # 本仓库
+└── NeteaseCloudMusicApi/       # 上面 clone 下来的 sidecar
+    └── node_modules/...
+```
+
+`scripts/start.js` 会先查找 `../NeteaseCloudMusicApi/node_modules/NeteaseCloudMusicApi/app.js`,
+等它的 `/inner/version` 返回后再启动 Claudio。如果找不到本地 sidecar,
+会 fallback 到 `npx NeteaseCloudMusicApi@latest`(需要 `npx` 在 `PATH`
+上,且能联网)。
 
 安装依赖：
 

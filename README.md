@@ -132,6 +132,26 @@ Open:
 http://localhost:8080
 ```
 
+### Optional: QQ Music recommendations
+
+If you also use QQ Music and have a QQ Music Skills API key, set:
+
+```bash
+QQMUSIC_API_KEY=qmk-xxxxxxxx
+QQMUSIC_API_BASE=https://a.y.qq.com   # default, only change if proxied
+```
+
+With the key present, `qq-music.js` calls `/discover/daily-mix` once on boot
+and again every day at 09:00. The 30 recommended songs are cached at
+`data/netease/qq-recommendations.json` (Git-ignored) and injected into the
+DJ prompt as a preferred track source. The DJ still falls back to free
+recommendations when none of the QQ picks are findable on Netease.
+
+Get your key at: <https://y.qq.com/n/ryqq_v2/qqmusic_skills>
+
+If the key is missing, the integration silently no-ops; nothing in the
+core Claudio flow depends on it.
+
 ## Recent Updates
 
 - **Cookie handling rewrite**: trimming the saved login cookie to just
@@ -151,6 +171,17 @@ http://localhost:8080
   over shell-injected variables.
 - **Bridge / segue reliability**: a stack of fixes around the segment broadcast
   pipeline so DJ intros and bridges between tracks don't drop silently.
+- **QQ Music daily recommendations**: optional integration. If you set
+  `QQMUSIC_API_KEY` in `.env`, Claudio pulls the user's QQ Music daily 30 at
+  boot and again at 09:00 every day, caches the list under
+  `data/netease/qq-recommendations.json`, and the DJ prefers those songs when
+  picking what to play. About 87% of the recommended tracks are also available
+  on Netease, so most of them will actually stream. See *Optional: QQ Music
+  recommendations* below.
+- **Taste profile refreshed**: `user/taste.md` was rewritten from the QQ Music
+  six-month listening report — real top artists (Gareth.T, Broken Bells, Baby
+  Keem, BLACKPINK, 陈佳), repeat-of-the-month picks, and the late-night
+  listening peak that wasn't in the original hand-written profile.
 
 ## Current Version
 
@@ -276,6 +307,24 @@ yarn start
 http://localhost:8080
 ```
 
+### 可选:QQ 音乐推荐接入
+
+如果你同时用 QQ 音乐,并有 QQ Music Skills API Key,可以在 `.env` 里加:
+
+```bash
+QQMUSIC_API_KEY=qmk-xxxxxxxx
+QQMUSIC_API_BASE=https://a.y.qq.com   # 默认值,除非走代理否则不用改
+```
+
+设置后,`qq-music.js` 会在启动时调一次 `/discover/daily-mix`,并每天 09:00
+定时刷新。拿到的 30 首推荐会缓存到 `data/netease/qq-recommendations.json`
+(Git 忽略),注入到 DJ 的 prompt,作为"优先选曲清单"。如果推荐里某首歌
+在网易云找不到,DJ 会自由选曲兜底。
+
+申请地址:<https://y.qq.com/n/ryqq_v2/qqmusic_skills>
+
+如果没设 key,整个 QQ 接入模块**静默 no-op**,不影响 Claudio 主流程。
+
 ## 最近更新
 
 - **Cookie 处理重写**:扫码保存的 cookie 会被精简为 `MUSIC_U` + `__csrf`,
@@ -291,6 +340,13 @@ http://localhost:8080
   让项目 `.env` 始终优先于 shell 注入的环境变量。
 - **Bridge / 串场稳定性**:修复了 segment 广播管道里的一连串问题,
   避免 DJ 开场和歌曲间串场静默丢失。
+- **QQ 音乐每日推荐接入**:可选功能。`.env` 里设了 `QQMUSIC_API_KEY` 之后,
+  Claudio 会在启动时 + 每天 9 点拉取 QQ 音乐每日 30 首,缓存到
+  `data/netease/qq-recommendations.json`(Git 忽略),DJ 优先从这 30 首里
+  选曲。实测约 87% 在网易云能找到。详见"可选:QQ 音乐推荐接入"一节。
+- **品味档案更新**:`user/taste.md` 基于 QQ 音乐 6 个月听歌报告重写,
+  加入真实常驻歌手(Gareth.T / Broken Bells / Baby Keem / BLACKPINK / 陈佳)
+  和深夜活跃高峰段;原版已备份为 `user/taste.md.bak.20260620`。
 
 ## 当前版本
 

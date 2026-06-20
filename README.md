@@ -147,7 +147,28 @@ and again every day at 09:00. The 30 recommended songs are cached at
 DJ prompt as a preferred track source. The DJ still falls back to free
 recommendations when none of the QQ picks are findable on Netease.
 
-Get your key at: <https://y.qq.com/n/ryqq_v2/qqmusic_skills>
+#### How to get the QQ Music Skills API key
+
+1. Open <https://y.qq.com/n/ryqq_v2/qqmusic_skills> in a browser. Log in
+   with the QQ account whose listening history you want Claudio to use.
+2. On the skills page, click **「立即体验 / Get Key」** (or the equivalent
+   "Generate / 申请" button). The site issues a personal key bound to
+   that QQ account — it is the `qmk-...` string you see after authorization.
+3. Copy the key into your `.env`:
+   ```bash
+   QQMUSIC_API_KEY=qmk-the-string-you-just-copied
+   ```
+   Do **not** commit `.env`. (Already Git-ignored.)
+4. Restart Claudio. On boot you should see a log line like
+   `[qq-recommend] 拉取 30 首到 data/netease/qq-recommendations.json`.
+   If you only see `[qq-recommend] 跳过: QQMUSIC_API_KEY not set`, the env
+   var did not propagate — check `cat .env | grep QQMUSIC_API_KEY`.
+
+**Privacy note:** the key is tied to your QQ account and can read your
+listening history. Treat it like a password: do not paste it in public
+chats or commits. You can revoke it from the same skills page at any
+time. If you do revoke it, generate a new one and update `.env` — no
+code changes needed.
 
 If the key is missing, the integration silently no-ops; nothing in the
 core Claudio flow depends on it.
@@ -321,7 +342,29 @@ QQMUSIC_API_BASE=https://a.y.qq.com   # 默认值,除非走代理否则不用改
 (Git 忽略),注入到 DJ 的 prompt,作为"优先选曲清单"。如果推荐里某首歌
 在网易云找不到,DJ 会自由选曲兜底。
 
+<<<<<<< HEAD
 申请地址:<https://y.qq.com/n/ryqq_v2/qqmusic_skills>
+=======
+#### 如何获取 QQ Music Skills API Key
+
+1. 浏览器打开 <https://y.qq.com/n/ryqq_v2/qqmusic_skills>,用你想让
+   Claudio 使用的那个 QQ 账号登录。
+2. 在技能页面点 **「立即体验 / Get Key」**(或同等含义的"申请"按钮),
+   页面会签发一个绑定该 QQ 账号的 `qmk-...` 字符串。
+3. 把 key 填到 `.env`:
+   ```bash
+   QQMUSIC_API_KEY=qmk-你刚复制的那串
+   ```
+   **不要**提交 `.env`(已被 Git 忽略)。
+4. 重启 Claudio。启动日志里应该出现:
+   `[qq-recommend] 拉取 30 首到 data/netease/qq-recommendations.json`。
+   如果只看到 `[qq-recommend] 跳过: QQMUSIC_API_KEY not set`,说明环境
+   变量没传进去,执行 `cat .env | grep QQMUSIC_API_KEY` 排查。
+
+**隐私提示**:这个 key 绑定了你的 QQ 账号,可以读取你的听歌记录,
+等同于密码——**不要**贴在公开聊天或 commit 里。如果泄露,随时可以
+在同一个 skills 页面 revoke 它,然后生成新的并更新 `.env`,无需改任何代码。
+>>>>>>> d4e4fa4 (Add step-by-step QQ Music Skills API key instructions to README)
 
 如果没设 key,整个 QQ 接入模块**静默 no-op**,不影响 Claudio 主流程。
 

@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -6,19 +6,26 @@ const fs = require('fs');
 const { WebSocketServer } = require('ws');
 
 const { route } = require('./router');
-const { buildPrompt, buildProgramStartPrompt, buildColdOpenForTracksPrompt, buildMusicRefillPrompt, buildBridgePrompt } = require('./context');
+const { buildPrompt, buildProgramStartPrompt, buildColdOpenForTracksPrompt, buildMusicRefillPrompt, buildBridgePrompt, setCurrentUserId } = require('./context');
 const { callClaude } = require('./claude');
 const { synthesize } = require('./tts');
 const { getTrack, likeSong } = require('./music');
 const { addPlay, clearPlays, addMessage, recentPlays, getPref } = require('./state');
 const scheduler = require('./scheduler');
-const { bootstrapNeteaseLogin } = require('./netease-session');
-
+const {
+  bootstrapNeteaseLogin,
+  requestNeteaseJson,
+  getNeteaseConfig,
+  verifyLoginStatus,
+  trimCookie,
+  setCurrentUserCookie,
+} = require('./netease-session');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/stream' });
 
 app.use(express.json());
+app.use(express.text({ type: 'text/plain' }));
 app.use(express.static(path.join(__dirname, 'pwa')));
 
 // ── WebSocket broadcast ──────────────────────────────────────────────────────
@@ -54,6 +61,18 @@ const stationState = {
   jobKeys: new Set(),
   workerRunning: false,
 };
+
+// Current user ID for taste isolation
+let currentUserId = null;
+
+function setStationUserId(userId) {
+  currentUserId = userId || null;
+  setCurrentUserId(userId);
+}
+
+function getStationUserId() {
+  return currentUserId;
+}
 
 function normalizeDjLanguage(value) {
   return value === 'zh' ? 'zh' : 'en';
@@ -444,7 +463,10 @@ async function drainJobs() {
   while (stationState.generationJobs.length) {
     const job = stationState.generationJobs.shift();
     try {
-      console.log(`[jobs] 开始 ${job.key}`);
+      // Set user ID before job execution (from job.userId or current station user)
+      const jobUserId = job.userId || currentUserId;
+      setStationUserId(jobUserId);
+      console.log(`[jobs] 开始 ${job.key}${jobUserId ? ' (user:' + jobUserId + ')' : ''}`);
       await runJob(job);
       console.log(`[jobs] 完成 ${job.key}`);
     } catch (err) {
@@ -691,6 +713,21 @@ app.post('/api/chat', async (req, res) => {
   intent.source = autoRefill ? 'autoRefill' : 'user';
   intent.djLanguage = normalizeDjLanguage(djLanguage);
 
+  // Get user ID from cookie for taste isolation
+  const cookie = req.headers['x-netease-cookie'];
+  let userId = null;
+  if (cookie) {
+    try {
+      const status = await verifyLoginStatus({ cookie: trimCookie(cookie) });
+      if (status.userId) {
+        userId = status.userId;
+        setStationUserId(userId);
+      }
+    } catch (err) {
+      console.warn('[api/chat] Failed to verify user:', err.message);
+    }
+  }
+
   if (intent.action === 'next') {
     broadcast({ type: 'control', action: 'next' });
     return res.json({ action: 'next' });
@@ -715,6 +752,7 @@ app.post('/api/chat', async (req, res) => {
       input: intent.message,
       source: autoRefill ? 'autoRefill' : 'user',
       djLanguage: intent.djLanguage,
+      userId,
     });
     return res.json({ queued: true, jobType: 'program_start' });
   }
@@ -722,7 +760,7 @@ app.post('/api/chat', async (req, res) => {
   await handleClaudeRequest(intent.message, res, intent, !!autoRefill);
 });
 
-app.post('/api/radio/refill', (req, res) => {
+app.post('/api/radio/refill', async (req, res) => {
   const {
     programId,
     sessionTitle,
@@ -733,6 +771,21 @@ app.post('/api/radio/refill', (req, res) => {
     queueLength,
     djLanguage,
   } = req.body || {};
+
+  // Get user ID from cookie for taste isolation
+  const cookie = req.headers['x-netease-cookie'];
+  let userId = null;
+  if (cookie) {
+    try {
+      const status = await verifyLoginStatus({ cookie: trimCookie(cookie) });
+      if (status.userId) {
+        userId = status.userId;
+      }
+    } catch (err) {
+      console.warn('[api/radio/refill] Failed to verify user:', err.message);
+    }
+  }
+
   const effectiveProgramId = programId || stationState.programId || makeProgramId();
   const effectiveQueueLength = Number.isInteger(queueLength) ? queueLength : Array.isArray(queue) ? queue.length : stationState.tracks.length;
   const key = `music_refill:${effectiveProgramId}`;
@@ -748,6 +801,7 @@ app.post('/api/radio/refill', (req, res) => {
     queueLength: effectiveQueueLength,
     count: REFILL_TRACK_COUNT,
     djLanguage: normalizeDjLanguage(djLanguage),
+    userId,
   });
   res.json({ queued: accepted, jobType: 'music_refill', programId: effectiveProgramId });
 });
@@ -761,12 +815,103 @@ app.get('/api/next', async (req, res) => {
   res.json({ action: 'next' });
 });
 
-app.get('/api/taste', (req, res) => {
+// Helper: get user-specific taste file path
+const DEFAULT_TASTE_PATH = path.join(__dirname, 'user', 'taste.md');
+const USER_TASTE_DIR = path.join(__dirname, 'data', 'netease', 'taste');
+
+function ensureUserTasteDir() {
+  fs.mkdirSync(USER_TASTE_DIR, { recursive: true });
+}
+
+function getUserTastePath(userId) {
+  if (!userId) return DEFAULT_TASTE_PATH;
+  ensureUserTasteDir();
+  return path.join(USER_TASTE_DIR, `${userId}_taste.md`);
+}
+
+async function getUserIdFromCookie(req) {
+  const cookie = req.headers['x-netease-cookie'];
+  if (!cookie) return null;
   try {
-    const content = fs.readFileSync(path.join(__dirname, 'user/taste.md'), 'utf-8');
-    res.type('text/plain').send(content);
+    const status = await verifyLoginStatus({ cookie: trimCookie(cookie) });
+    return status.userId || null;
   } catch {
+    return null;
+  }
+}
+
+app.get('/api/taste', async (req, res) => {
+  try {
+    const userId = await getUserIdFromCookie(req);
+    const tastePath = getUserTastePath(userId);
+
+    // If user-specific taste exists, return it
+    if (fs.existsSync(tastePath)) {
+      const content = fs.readFileSync(tastePath, 'utf-8');
+      return res.type('text/plain').send(content);
+    }
+
+    // Fall back to default taste.md (as template)
+    if (fs.existsSync(DEFAULT_TASTE_PATH)) {
+      const content = fs.readFileSync(DEFAULT_TASTE_PATH, 'utf-8');
+      return res.type('text/plain').send(content);
+    }
+
     res.status(404).json({ error: 'taste.md not found' });
+  } catch (err) {
+    console.error('[taste] Get failed:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/taste', async (req, res) => {
+  try {
+    const userId = await getUserIdFromCookie(req);
+    if (!userId) {
+      return res.status(401).json({ error: '请先登录网易云音乐' });
+    }
+
+    const content = req.body;
+    if (typeof content !== 'string' || !content.trim()) {
+      return res.status(400).json({ error: 'content must be a non-empty string' });
+    }
+
+    const tastePath = getUserTastePath(userId);
+    fs.writeFileSync(tastePath, content, 'utf-8');
+    res.json({ ok: true, userId });
+  } catch (err) {
+    console.error('[taste] Save failed:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/qq-music/refresh', async (req, res) => {
+  const { apiKey } = req.body || {};
+  if (!apiKey) {
+    return res.status(400).json({ error: 'apiKey required' });
+  }
+
+  try {
+    // Temporarily override env var for this request
+    const originalKey = process.env.QQMUSIC_API_KEY;
+    process.env.QQMUSIC_API_KEY = apiKey;
+
+    const result = await refreshRecommendations();
+
+    // Restore original env var
+    if (originalKey) {
+      process.env.QQMUSIC_API_KEY = originalKey;
+    } else {
+      delete process.env.QQMUSIC_API_KEY;
+    }
+
+    if (result.error) {
+      return res.status(400).json({ error: result.error });
+    }
+    res.json({ count: result.count, fetchedAt: result.fetchedAt });
+  } catch (err) {
+    console.error('[qq-music] Refresh failed:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -811,6 +956,96 @@ app.post('/api/plays/clear', (req, res) => {
     console.error('[plays] clear failed:', err);
     res.status(500).json({ error: err.message });
   }
+});
+
+
+// ── Netease QR Login API (frontend) ─────────────────────────────────────────
+const QR_POLL_INTERVAL_MS = 2500;
+const QR_LOGIN_TIMEOUT_MS = 180000;
+
+app.post('/api/netease/qr/key', async (req, res) => {
+  try {
+    const { baseUrl } = getNeteaseConfig();
+    const keyData = await requestNeteaseJson('/login/qr/key', {}, { baseUrl });
+    const key = keyData?.data?.unikey;
+    if (!key) {
+      return res.status(500).json({ error: 'Failed to get QR key from Netease API' });
+    }
+
+    const qrData = await requestNeteaseJson('/login/qr/create', { key, qrimg: true }, { baseUrl });
+    res.json({
+      key,
+      qrImg: qrData?.data?.qrimg || null,
+      qrUrl: qrData?.data?.qrurl || null,
+    });
+  } catch (err) {
+    console.error('[netease-qr/key]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/netease/qr/check/:key', async (req, res) => {
+  const { key } = req.params;
+  if (!key) return res.status(400).json({ error: 'key required' });
+
+  try {
+    const { baseUrl } = getNeteaseConfig();
+    const state = await requestNeteaseJson('/login/qr/check', { key }, { baseUrl });
+    const code = Number(state?.code);
+
+    const messages = {
+      800: '二维码已过期，请重新获取',
+      801: '请使用网易云音乐 App 扫码',
+      802: '已扫码，请在 App 中确认登录',
+      803: '登录成功',
+    };
+
+    res.json({
+      code,
+      message: messages[code] || `未知状态: ${code}`,
+      cookie: code === 803 ? trimCookie(state.cookie) : null,
+    });
+  } catch (err) {
+    console.error('[netease-qr/check]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/netease/status', async (req, res) => {
+  const userCookie = req.headers['x-netease-cookie'];
+  const { baseUrl } = getNeteaseConfig();
+
+  if (!userCookie) {
+    return res.json({ loggedIn: false });
+  }
+
+  try {
+    const status = await verifyLoginStatus({ baseUrl, cookie: trimCookie(userCookie) });
+    res.json({
+      loggedIn: status.valid,
+      userId: status.userId || null,
+      reason: status.reason || null,
+    });
+  } catch (err) {
+    console.error('[netease-status]', err.message);
+    res.json({ loggedIn: false, error: err.message });
+  }
+});
+
+
+app.post('/api/netease/login', (req, res) => {
+  const { cookie } = req.body;
+  if (!cookie) return res.status(400).json({ error: 'cookie required' });
+
+  setCurrentUserCookie(cookie);
+  console.log('[netease-login] User cookie set via API');
+  res.json({ ok: true });
+});
+
+app.post('/api/netease/logout', (req, res) => {
+  // Client-side handles cookie clearing via localStorage
+  // This endpoint exists for future server-side session support
+  res.json({ ok: true });
 });
 
 // Serve cached TTS files

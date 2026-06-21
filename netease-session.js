@@ -300,7 +300,22 @@ async function bootstrapNeteaseLogin({ baseUrl = neteaseBaseUrl(), required = fa
   return { ok: false, source: 'anonymous', reason: result.reason };
 }
 
+
+// In-memory storage for per-user cookie (reset on server restart)
+let currentUserCookie = null;
+
+function setCurrentUserCookie(cookie) {
+  currentUserCookie = cookie ? trimCookie(cookie) : null;
+  console.log('[netease-session] User cookie updated:', currentUserCookie ? 'set' : 'cleared');
+}
+
+function getCurrentUserCookie() {
+  return currentUserCookie;
+}
+
 module.exports = {
+  setCurrentUserCookie,
+  getCurrentUserCookie,
   DATA_DIR,
   LOCAL_CONFIG_PATH,
   QR_LOGIN_PATH,
@@ -315,6 +330,7 @@ module.exports = {
   redactSensitiveText,
   requestNeteaseJson,
   resolveCookie,
+  trimCookie,
   verifyLoginStatus,
   writeLocalConfig,
 };

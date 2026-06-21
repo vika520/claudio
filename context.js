@@ -7,9 +7,32 @@ function readFile(filePath) {
   try { return fs.readFileSync(filePath, 'utf-8'); } catch { return ''; }
 }
 
+const USER_TASTE_DIR = path.join(__dirname, 'data', 'netease', 'taste');
+
+function getUserTastePath(userId) {
+  if (!userId) return path.join(__dirname, 'user/taste.md');
+  return path.join(USER_TASTE_DIR, `${userId}_taste.md`);
+}
+
+// Global current user ID (set by server.js before job execution)
+let currentUserId = null;
+
+function setCurrentUserId(userId) {
+  currentUserId = userId || null;
+}
+
+function getCurrentUserId() {
+  return currentUserId;
+}
+
 function sharedContext({ includeTaste = true, includeDialog = true, recentPlayLimit = 20 } = {}) {
+  const tastePath = getUserTastePath(currentUserId);
+  console.log(`[context] Loading taste for user ${currentUserId || 'default'} from: ${tastePath}`);
   const persona = readFile(path.join(__dirname, 'prompts/dj-persona.md'));
-  const taste = readFile(path.join(__dirname, 'user/taste.md'));
+  const taste = readFile(tastePath);
+  if (!taste && currentUserId) {
+    console.log(`[context] User taste not found, falling back to default`);
+  }
   const routines = readFile(path.join(__dirname, 'user/routines.md'));
   const moodRules = readFile(path.join(__dirname, 'user/mood-rules.md'));
   const now = new Date();
@@ -198,4 +221,4 @@ function buildBridgePrompt({ programTitle = '', afterTrack, beforeTrack, afterTr
   ].filter(Boolean).join('\n\n');
 }
 
-module.exports = { buildPrompt, buildProgramStartPrompt, buildColdOpenForTracksPrompt, buildMusicRefillPrompt, buildBridgePrompt };
+module.exports = { buildPrompt, buildProgramStartPrompt, buildColdOpenForTracksPrompt, buildMusicRefillPrompt, buildBridgePrompt, setCurrentUserId, getCurrentUserId };

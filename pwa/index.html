@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -345,7 +345,7 @@ html, body {
   padding: 3px; border-radius: 999px;
   background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08);
 }
-#skinControl { grid-template-columns: repeat(3, 1fr); }
+#skinControl { grid-template-columns: repeat(2, 1fr); }
 .segmented button {
   height: 30px; border: none; border-radius: 999px;
   background: transparent; color: rgba(255,255,255,.58);
@@ -359,6 +359,322 @@ html, body {
 .swatch { width: 28px; height: 28px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: transform .12s; }
 .swatch:hover { transform: scale(1.08); }
 .swatch.active { border-color: rgba(255,255,255,.9); }
+
+/* ── Netease login section ──────────────────────────────────────── */
+.netease-section {
+  border-top: 1px solid rgba(255,255,255,.08);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.netease-section h4 {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.netease-section h4::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c20c0c;
+}
+.netease-status {
+  font-size: 12px;
+  color: rgba(255,255,255,.65);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.netease-status .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.3);
+}
+.netease-status.logged-in .dot {
+  background: rgb(41,255,184);
+  box-shadow: 0 0 6px rgba(41,255,184,.5);
+}
+@keyframes netease-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(194,12,12,.4); }
+  50% { box-shadow: 0 0 0 8px rgba(194,12,12,0); }
+}
+.netease-login-hint {
+  font-size: 11px;
+  color: rgb(255,200,80);
+  margin: 6px 0 8px;
+  padding: 6px 10px;
+  background: rgba(255,200,80,.08);
+  border: 1px solid rgba(255,200,80,.2);
+  border-radius: 8px;
+  animation: hint-pulse 2s ease infinite;
+}
+@keyframes hint-pulse {
+  0%, 100% { opacity: .85; }
+  50% { opacity: 1; }
+}
+.netease-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.netease-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(194,12,12,.15);
+  border: 1px solid rgba(194,12,12,.35);
+  color: rgba(255,255,255,.85);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+}
+.netease-btn:hover {
+  background: rgba(194,12,12,.25);
+  border-color: rgba(194,12,12,.55);
+  color: #fff;
+}
+.netease-btn.logout-btn {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.12);
+}
+.netease-btn.logout-btn:hover {
+  background: rgba(255,80,80,.15);
+  border-color: rgba(255,120,120,.35);
+}
+
+/* ── Netease QR modal ────────────────────────────────────────────── */
+.netease-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.netease-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.netease-modal {
+  background: rgba(28,28,32,.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  padding: 20px;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  color: #fff;
+  box-shadow: 0 24px 64px rgba(0,0,0,.45);
+  transform: scale(.96);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.netease-modal-overlay.visible .netease-modal {
+  transform: scale(1);
+}
+
+/* Modal header */
+.netease-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.netease-modal-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: .04em;
+  color: rgba(255,255,255,.9);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.netease-modal-header h3::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #c20c0c 0%, #e8453a 100%);
+  border-radius: 5px;
+  display: none;
+}
+.netease-modal-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.6);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background .15s, color .15s;
+}
+.netease-modal-close:hover {
+  background: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.9);
+}
+
+/* QR display */
+.qr-display {
+  text-align: center;
+  padding: 8px 0 16px;
+  min-height: 220px;
+}
+.qr-display img {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.qr-status {
+  font-size: 12px;
+  color: rgba(255,255,255,.65);
+  margin: 12px 0 0;
+  min-height: 18px;
+}
+
+/* Loading */
+.qr-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  gap: 12px;
+}
+.qr-loading p {
+  font-size: 12px;
+  color: rgba(255,255,255,.5);
+  margin: 0;
+}
+.qr-spinner {
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(255,255,255,.1);
+  border-top-color: rgba(255,255,255,.6);
+  border-radius: 50%;
+  animation: qr-spin 1s linear infinite;
+}
+@keyframes qr-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Risk notice */
+.risk-notice {
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding-top: 12px;
+}
+.risk-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  color: rgba(255,200,80,.85);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .15s;
+}
+.risk-toggle:hover {
+  color: rgb(255,200,80);
+}
+.risk-toggle-icon {
+  font-size: 10px;
+  transition: transform .2s;
+  color: rgba(255,200,80,.6);
+}
+.risk-notice.expanded .risk-toggle-icon {
+  transform: rotate(180deg);
+}
+.risk-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255,200,80,.12);
+  border: 1px solid rgba(255,200,80,.2);
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,200,80,.8);
+  letter-spacing: .04em;
+}
+.risk-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s ease, opacity .25s ease;
+  opacity: 0;
+}
+.risk-notice.expanded .risk-content {
+  max-height: 400px;
+  opacity: 1;
+}
+.risk-text {
+  padding: 12px;
+  background: rgba(0,0,0,.2);
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.55);
+}
+.risk-text p {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: rgba(255,255,255,.75);
+}
+.risk-text p:last-of-type {
+  margin-bottom: 0;
+  font-weight: 400;
+  color: rgba(255,255,255,.5);
+}
+.risk-text ul {
+  margin: 0 0 10px;
+  padding-left: 16px;
+}
+.risk-text li {
+  margin: 4px 0;
+}
+.risk-agree-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 0;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  transition: color .15s;
+}
+.risk-agree-label:hover {
+  color: rgba(255,255,255,.9);
+}
+.risk-agree-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: rgb(194,12,12);
+  cursor: pointer;
+}
+.risk-agree-label.checked {
+  color: rgb(41,255,184);
+}
 
 /* ── Request line toggle ─────────────────────────────────────────── */
 .chat-toggle {
@@ -378,10 +694,277 @@ html, body {
 .chat-toggle-label { display: inline-block; }
 .chat-toggle.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
 
+/* Taste toggle - positioned above request line */
+.taste-toggle {
+  bottom: 64px;
+  left: 16px;
+}
+.taste-toggle svg { color: rgb(255,200,80); }
+
 @media (max-width: 560px) {
   .chat-toggle { padding: 0; width: 40px; min-width: 40px; }
   .chat-toggle-label { display: none; }
   .chat-bar { width: calc(100vw - 32px); }
+}
+
+/* ── Taste panel ─────────────────────────────────────────────────── */
+.taste-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 68px;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20,20,22,.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  padding: 16px;
+  color: #fff;
+  z-index: 1000;
+  box-shadow: rgba(0,0,0,.45) 0 16px 48px;
+  transition: opacity .2s, transform .2s;
+}
+.taste-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+.taste-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.taste-panel-header h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.7);
+}
+.taste-panel-close {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.5);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background .15s, color .15s;
+}
+.taste-panel-close:hover {
+  background: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.9);
+}
+.taste-section {
+  margin-bottom: 16px;
+}
+.taste-section:last-child {
+  margin-bottom: 0;
+}
+.taste-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+  margin-bottom: 8px;
+  letter-spacing: .02em;
+}
+.taste-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.2);
+  color: rgba(255,255,255,.85);
+  font-size: 12px;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.taste-textarea:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.25);
+}
+.taste-textarea::placeholder {
+  color: rgba(255,255,255,.35);
+}
+.taste-save-btn {
+  appearance: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.9);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  transition: background .15s, border-color .15s, color .15s;
+  margin-top: 10px;
+}
+.taste-save-btn:hover {
+  background: rgba(120,200,140,.18);
+  border-color: rgba(140,220,160,.45);
+  color: rgb(200,240,210);
+}
+.taste-save-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.taste-hint {
+  font-size: 11px;
+  margin: 8px 0 0;
+  min-height: 16px;
+  color: rgba(255,255,255,.5);
+}
+.taste-hint.success {
+  color: rgb(41,255,184);
+}
+.taste-hint.error {
+  color: rgb(255,120,120);
+}
+.taste-qq-section {
+  background: rgba(0,0,0,.15);
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.06);
+}
+.taste-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(255,255,255,.75);
+  margin-bottom: 8px;
+}
+.taste-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: rgb(194,12,12);
+  cursor: pointer;
+}
+.taste-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.2);
+  color: rgba(255,255,255,.85);
+  font-size: 12px;
+  font-family: inherit;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+.taste-input:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.25);
+}
+.taste-input::placeholder {
+  color: rgba(255,255,255,.35);
+}
+.taste-qq-input-group {
+  margin-top: 8px;
+}
+.taste-qq-status {
+  font-size: 11px;
+  margin: 6px 0 0;
+  min-height: 16px;
+  color: rgba(255,255,255,.5);
+}
+.taste-qq-status.success {
+  color: rgb(41,255,184);
+}
+.taste-qq-status.error {
+  color: rgb(255,120,120);
+}
+.taste-qq-help {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.taste-help-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  color: rgba(255,200,80,.85);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .15s;
+}
+.taste-help-toggle:hover {
+  color: rgb(255,200,80);
+}
+.taste-help-toggle-icon {
+  font-size: 10px;
+  transition: transform .2s;
+  color: rgba(255,200,80,.6);
+}
+.taste-qq-help.expanded .taste-help-toggle-icon {
+  transform: rotate(180deg);
+}
+.taste-help-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s ease, opacity .25s ease;
+  opacity: 0;
+}
+.taste-qq-help.expanded .taste-help-content {
+  max-height: 300px;
+  opacity: 1;
+}
+.taste-help-content ol {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  color: rgba(255,255,255,.55);
+  line-height: 1.8;
+}
+.taste-help-content li {
+  margin: 3px 0;
+}
+.taste-help-content a {
+  color: rgb(100,160,255);
+  text-decoration: none;
+}
+.taste-help-content a:hover {
+  text-decoration: underline;
+}
+.taste-help-content code {
+  background: rgba(255,255,255,.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  color: rgba(255,255,255,.7);
+}
+.taste-help-note {
+  font-size: 10px;
+  color: rgba(255,255,255,.4);
+  margin: 8px 0 0;
+  font-style: italic;
+}
+
+@media (max-width: 560px) {
+  .taste-panel {
+    width: calc(100vw - 32px);
+    left: 16px;
+  }
 }
 
 /* ── Fullscreen toggle ───────────────────────────────────────────── */
@@ -1142,6 +1725,16 @@ html, body {
   <span class="chat-toggle-label">Request line</span>
 </button>
 
+<!-- Your Taste toggle -->
+<button class="chat-toggle taste-toggle" id="tasteToggle" aria-label="Open your taste" title="Your taste">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M9 18V5l12-2v13"/>
+    <circle cx="6" cy="18" r="3"/>
+    <circle cx="18" cy="16" r="3"/>
+  </svg>
+  <span class="chat-toggle-label">Your taste</span>
+</button>
+
 <!-- Chat bar -->
 <div class="chat-bar hidden" id="chatBar">
   <textarea id="chat-input" rows="1" placeholder="Leave a note for Claudio…"></textarea>
@@ -1153,6 +1746,56 @@ html, body {
   </button>
 </div>
 
+<!-- Taste panel -->
+<div class="taste-panel hidden" id="tastePanel">
+  <div class="taste-panel-header">
+    <h3>Your Taste</h3>
+    <button type="button" class="taste-panel-close" id="tastePanelClose" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="taste-section">
+    <label class="taste-label">音乐品味描述</label>
+    <textarea id="tasteInput" class="taste-textarea" rows="8" placeholder="描述你喜欢的音乐风格、艺人、氛围...&#10;&#10;例如：&#10;- 喜欢 Indie Pop / Dream Pop&#10;- 偏爱华语独立音乐&#10;- 晚上喜欢听 Lo-fi&#10;- 不喜欢过于吵闹的 EDM"></textarea>
+    <button type="button" class="taste-save-btn" id="tasteSaveBtn">保存品味</button>
+    <p class="taste-hint" id="tasteSaveHint"></p>
+  </div>
+
+  <div class="taste-section">
+    <label class="taste-label">QQ 音乐每日推荐</label>
+    <div class="taste-qq-section">
+      <label class="taste-checkbox-label">
+        <input type="checkbox" id="qqRecommendToggle">
+        <span>启用 QQ 音乐每日推荐</span>
+      </label>
+      <div class="taste-qq-input-group" id="qqInputGroup" style="display:none">
+        <input type="text" id="qqApiKeyInput" class="taste-input" placeholder="输入 QQ Music Skills API Key (qmk-...)" autocomplete="off">
+        <button type="button" class="taste-save-btn" id="qqApiKeySaveBtn">保存</button>
+      </div>
+      <p class="taste-qq-status" id="qqStatus"></p>
+      <div class="taste-qq-help" id="tasteQqHelp">
+        <button type="button" class="taste-help-toggle" id="tasteHelpToggle">
+          <span class="taste-help-toggle-icon">▼</span>
+          <span>如何获取 API Key？</span>
+        </button>
+        <div class="taste-help-content" id="tasteHelpContent">
+          <ol>
+            <li>打开 <a href="https://y.qq.com/n/ryqq_v2/qqmusic_skills" target="_blank" rel="noopener">QQ Music Skills 页面</a></li>
+            <li>用你想使用的 QQ 账号登录</li>
+            <li>点击「立即体验 / Get Key」按钮</li>
+            <li>复制 <code>qmk-...</code> 开头的字符串</li>
+            <li>粘贴到上方输入框并保存</li>
+          </ol>
+          <p class="taste-help-note">API Key 仅保存在本地浏览器，不会上传到服务器。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Tweaks -->
 <button class="tweaks-toggle" id="tweaksToggle" aria-label="Toggle tweaks">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1162,12 +1805,25 @@ html, body {
 </button>
 <div class="tweaks" id="tweaks">
   <h3>Tweaks</h3>
+
+  <!-- Netease login section -->
+  <div class="netease-section" id="neteaseSection">
+    <h4>网易云音乐</h4>
+    <div class="netease-status" id="neteaseStatus">
+      <span class="dot"></span>
+      <span id="neteaseStatusText">未登录</span>
+    </div>
+    <p class="netease-login-hint" id="neteaseLoginHint" style="display:none">请先登录网易云音乐以开始播放</p>
+    <div class="netease-actions" id="neteaseActions">
+      <button type="button" class="netease-btn" id="neteaseLoginBtn">登录网易云</button>
+    </div>
+  </div>
+
   <div class="tweak-row">
     <label>Skin</label>
     <div class="segmented" id="skinControl" role="group" aria-label="Skin">
       <button type="button" data-skin-name="default" aria-pressed="true">Cosmic</button>
       <button type="button" data-skin-name="glass" aria-pressed="false">Glass</button>
-      <button type="button" data-skin-name="radio" aria-pressed="false">Radio</button>
     </div>
   </div>
   <div class="tweak-row">
@@ -1207,6 +1863,54 @@ html, body {
   </div>
 </div>
 
+<!-- Netease QR Login Modal -->
+<div class="netease-modal-overlay" id="neteaseModalOverlay">
+  <div class="netease-modal">
+    <div class="netease-modal-header">
+      <h3>登录网易云音乐</h3>
+      <button type="button" class="netease-modal-close" id="neteaseModalClose" aria-label="关闭">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- QR code display (shown after agreement) -->
+    <div class="qr-display" id="qrDisplay" style="display:none">
+      <div id="qrImageContainer"></div>
+      <p class="qr-status" id="qrStatus">请使用网易云音乐 App 扫码</p>
+    </div>
+
+    <!-- Loading state -->
+    <div class="qr-loading" id="qrLoading">
+      <div class="qr-spinner"></div>
+      <p>正在获取二维码...</p>
+    </div>
+
+    <!-- Risk notice -->
+    <div class="risk-notice" id="riskNotice">
+      <button type="button" class="risk-toggle" id="riskToggle">
+        <span class="risk-toggle-icon">▼</span>
+        <span>使用须知（点击勾选后获取二维码）</span>
+        <span class="risk-badge">必读</span>
+      </button>
+      <div class="risk-content" id="riskContent">
+        <div class="risk-text">
+          <p>⚠️ 重要提示</p>
+          <ul>
+            <li>您的网易云 Cookies 仅保存在当前浏览器，服务器不存储</li>
+            <li>非 VIP 用户：大部分歌曲仅支持 30 秒试听</li>
+            <li>建议使用 VIP 账号以获得最佳体验</li>
+            <li>Cookies 仅用于获取播放链接，不会用于其他用途</li>
+          </ul>
+          <p>我们不会获取您的账号密码或访问您的个人隐私信息。</p>
+        </div>
+        <label class="risk-agree-label">
+          <input type="checkbox" id="riskAgree">
+          <span>我已阅读并同意以上条款</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Hidden audio elements -->
 <audio id="tts-audio" preload="auto"></audio>
 <audio id="music-audio" preload="auto"></audio>
@@ -1630,6 +2334,21 @@ function syncRadioVisualFromAudio() {
 
 async function handleRadioPlayerClick() {
   if (startingRadio) return;
+
+  // Check netease login status before playing
+  const neteaseCookie = loadNeteaseCookie();
+  if (!neteaseCookie) {
+    // Not logged in, open tweaks and show login prompt
+    document.getElementById('tweaks').classList.add('visible');
+    // Highlight the netease section
+    const neteaseSection = document.getElementById('neteaseSection');
+    neteaseSection.style.animation = 'netease-pulse 1.5s ease 2';
+    setTimeout(() => {
+      neteaseSection.style.animation = '';
+    }, 3000);
+    return;
+  }
+
   if (musicAudio.src && musicAudio.paused) {
     musicAudio.play().catch(console.error);
     return;
@@ -1735,6 +2454,20 @@ musicAudio.addEventListener('timeupdate', () => {
 });
 
 playBtn.addEventListener('click', async () => {
+  // Check netease login status before playing
+  const neteaseCookie = loadNeteaseCookie();
+  if (!neteaseCookie) {
+    // Not logged in, open tweaks and show login prompt
+    document.getElementById('tweaks').classList.add('visible');
+    // Highlight the netease section
+    const neteaseSection = document.getElementById('neteaseSection');
+    neteaseSection.style.animation = 'netease-pulse 1.5s ease 2';
+    setTimeout(() => {
+      neteaseSection.style.animation = '';
+    }, 3000);
+    return;
+  }
+
   if (musicAudio.src && musicAudio.paused) {
     musicAudio.play().catch(console.error);
     return;
@@ -2454,9 +3187,14 @@ document.addEventListener('keydown', e => {
 
 async function requestChat(message, { showUserTurn = true } = {}) {
   if (showUserTurn) addUserTurn(message);
+  const headers = { 'Content-Type': 'application/json' };
+  const neteaseCookie = loadNeteaseCookie();
+  if (neteaseCookie) {
+    headers['X-Netease-Cookie'] = neteaseCookie;
+  }
   await fetch('/api/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ message, djLanguage }),
   });
 }
@@ -2520,6 +3258,224 @@ chatInput.addEventListener('input', () => {
   chatInput.style.height = Math.min(chatInput.scrollHeight, 84) + 'px';
 });
 chatSend.addEventListener('click', sendMessage);
+
+/* ── Your Taste Panel ─────────────────────────────────────────────── */
+const tasteToggle = document.getElementById('tasteToggle');
+const tastePanel = document.getElementById('tastePanel');
+const tastePanelClose = document.getElementById('tastePanelClose');
+const tasteInput = document.getElementById('tasteInput');
+const tasteSaveBtn = document.getElementById('tasteSaveBtn');
+const tasteSaveHint = document.getElementById('tasteSaveHint');
+const qqRecommendToggle = document.getElementById('qqRecommendToggle');
+const qqInputGroup = document.getElementById('qqInputGroup');
+const qqApiKeyInput = document.getElementById('qqApiKeyInput');
+const qqApiKeySaveBtn = document.getElementById('qqApiKeySaveBtn');
+const qqStatus = document.getElementById('qqStatus');
+
+const TASTE_STORAGE_KEY = 'claudio:taste';
+const QQ_API_KEY_STORAGE_KEY = 'claudio:qq_api_key';
+const QQ_RECOMMEND_ENABLED_KEY = 'claudio:qq_recommend_enabled';
+
+// Open taste panel
+function openTastePanel() {
+  tastePanel.classList.remove('hidden');
+  tasteToggle.classList.add('hidden');
+  loadTasteData();
+}
+
+// Close taste panel
+function closeTastePanel() {
+  tastePanel.classList.add('hidden');
+  tasteToggle.classList.remove('hidden');
+}
+
+tasteToggle.addEventListener('click', e => {
+  e.stopPropagation();
+  openTastePanel();
+});
+
+tastePanelClose.addEventListener('click', e => {
+  e.stopPropagation();
+  closeTastePanel();
+});
+
+tastePanel.addEventListener('click', e => {
+  e.stopPropagation();
+});
+
+// Toggle help expand/collapse
+const tasteHelpToggle = document.getElementById('tasteHelpToggle');
+const tasteQqHelp = document.getElementById('tasteQqHelp');
+
+tasteHelpToggle.addEventListener('click', () => {
+  tasteQqHelp.classList.toggle('expanded');
+});
+
+// Load taste data from localStorage and server
+async function loadTasteData() {
+  // Check login status first
+  const neteaseCookie = loadNeteaseCookie();
+  if (!neteaseCookie) {
+    // Not logged in - show default taste but indicate need login
+    const defaultTaste = localStorage.getItem(TASTE_STORAGE_KEY);
+    if (defaultTaste) {
+      tasteInput.value = defaultTaste;
+    } else {
+      tasteInput.value = '# 请先登录网易云音乐\n\n登录后，你可以在这里保存个性化的音乐品味描述。\n\n默认使用系统推荐风格。';
+    }
+    tasteSaveHint.textContent = '请先登录网易云音乐以保存品味';
+    tasteSaveHint.className = 'taste-hint error';
+    return;
+  }
+
+  // Load custom taste from localStorage
+  const customTaste = localStorage.getItem(TASTE_STORAGE_KEY);
+  if (customTaste) {
+    tasteInput.value = customTaste;
+  } else {
+    // Fetch from server if no local override
+    try {
+      const res = await fetch('/api/taste', {
+        headers: { 'X-Netease-Cookie': neteaseCookie }
+      });
+      if (res.ok) {
+        const text = await res.text();
+        tasteInput.value = text;
+      } else if (res.status === 401) {
+        tasteInput.value = '# 请先登录网易云音乐\n\n登录后，你可以在这里保存个性化的音乐品味描述。';
+      }
+    } catch (err) {
+      console.error('[taste] Failed to load:', err);
+    }
+  }
+
+  // Load QQ recommend settings
+  const qqEnabled = localStorage.getItem(QQ_RECOMMEND_ENABLED_KEY) === 'true';
+  qqRecommendToggle.checked = qqEnabled;
+  qqInputGroup.style.display = qqEnabled ? 'block' : 'none';
+
+  const savedKey = localStorage.getItem(QQ_API_KEY_STORAGE_KEY);
+  if (savedKey) {
+    qqApiKeyInput.value = savedKey;
+    qqStatus.textContent = '已保存 API Key';
+    qqStatus.className = 'taste-qq-status success';
+  }
+}
+
+// Save taste to localStorage and server
+tasteSaveBtn.addEventListener('click', async () => {
+  const content = tasteInput.value.trim();
+  if (!content) {
+    tasteSaveHint.textContent = '请输入音乐品味描述';
+    tasteSaveHint.className = 'taste-hint error';
+    return;
+  }
+
+  // Check login status
+  const neteaseCookie = loadNeteaseCookie();
+  if (!neteaseCookie) {
+    tasteSaveHint.textContent = '请先登录网易云音乐以保存品味';
+    tasteSaveHint.className = 'taste-hint error';
+    // Open tweaks panel to show login section
+    document.getElementById('tweaks').classList.add('visible');
+    return;
+  }
+
+  tasteSaveBtn.disabled = true;
+  tasteSaveHint.textContent = '保存中...';
+  tasteSaveHint.className = 'taste-hint';
+
+  try {
+    // Save to localStorage
+    localStorage.setItem(TASTE_STORAGE_KEY, content);
+
+    // Save to server with cookie
+    const res = await fetch('/api/taste', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain',
+        'X-Netease-Cookie': neteaseCookie
+      },
+      body: content
+    });
+
+    if (res.ok) {
+      tasteSaveHint.textContent = '保存成功！Claudio 将根据你的品味推荐音乐。';
+      tasteSaveHint.className = 'taste-hint success';
+    } else if (res.status === 401) {
+      tasteSaveHint.textContent = '登录已过期，请重新登录网易云音乐';
+      tasteSaveHint.className = 'taste-hint error';
+    } else {
+      throw new Error('Server save failed');
+    }
+  } catch (err) {
+    console.error('[taste] Save failed:', err);
+    tasteSaveHint.textContent = '本地保存成功，服务器同步失败';
+    tasteSaveHint.className = 'taste-hint success';
+  } finally {
+    tasteSaveBtn.disabled = false;
+  }
+});
+
+// Toggle QQ recommend visibility
+qqRecommendToggle.addEventListener('change', () => {
+  const enabled = qqRecommendToggle.checked;
+  localStorage.setItem(QQ_RECOMMEND_ENABLED_KEY, enabled);
+  qqInputGroup.style.display = enabled ? 'block' : 'none';
+  if (!enabled) {
+    qqStatus.textContent = '';
+    qqStatus.className = 'taste-qq-status';
+  }
+});
+
+// Save QQ API Key
+qqApiKeySaveBtn.addEventListener('click', async () => {
+  const key = qqApiKeyInput.value.trim();
+  if (!key) {
+    qqStatus.textContent = '请输入 API Key';
+    qqStatus.className = 'taste-qq-status error';
+    return;
+  }
+
+  if (!key.startsWith('qmk-')) {
+    qqStatus.textContent = 'API Key 格式错误，应以 qmk- 开头';
+    qqStatus.className = 'taste-qq-status error';
+    return;
+  }
+
+  qqApiKeySaveBtn.disabled = true;
+  qqStatus.textContent = '测试中...';
+  qqStatus.className = 'taste-qq-status';
+
+  try {
+    // Save to localStorage
+    localStorage.setItem(QQ_API_KEY_STORAGE_KEY, key);
+
+    // Test the API key by calling server to refresh recommendations
+    const res = await fetch('/api/qq-music/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: key })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.count) {
+      qqStatus.textContent = `测试成功！已获取 ${data.count} 首推荐歌曲`;
+      qqStatus.className = 'taste-qq-status success';
+    } else if (data.error) {
+      throw new Error(data.error);
+    } else {
+      throw new Error('Unknown error');
+    }
+  } catch (err) {
+    console.error('[qq-music] Test failed:', err);
+    qqStatus.textContent = '测试失败: ' + err.message;
+    qqStatus.className = 'taste-qq-status error';
+  } finally {
+    qqApiKeySaveBtn.disabled = false;
+  }
+});
 
 /* ── Skin ─────────────────────────────────────────────────────────── */
 const skinControl = document.getElementById('skinControl');
@@ -2622,6 +3578,276 @@ document.getElementById('swatches').addEventListener('click', e => {
     }
   });
 });
+
+/* ── Netease QR Login ─────────────────────────────────────────────── */
+const NETEASE_COOKIE_KEY = 'claudio:netease:cookie';
+const neteaseState = {
+  loggedIn: false,
+  userId: null,
+  qrKey: null,
+  pollTimer: null,
+  status: 'idle'
+};
+
+// DOM refs
+const neteaseSection = document.getElementById('neteaseSection');
+const neteaseStatus = document.getElementById('neteaseStatus');
+const neteaseStatusText = document.getElementById('neteaseStatusText');
+const neteaseLoginBtn = document.getElementById('neteaseLoginBtn');
+const neteaseActions = document.getElementById('neteaseActions');
+const neteaseModalOverlay = document.getElementById('neteaseModalOverlay');
+const riskNotice = document.getElementById('riskNotice');
+const riskToggle = document.getElementById('riskToggle');
+const riskAgree = document.getElementById('riskAgree');
+const qrDisplay = document.getElementById('qrDisplay');
+const qrLoading = document.getElementById('qrLoading');
+const qrStatus = document.getElementById('qrStatus');
+const qrImageContainer = document.getElementById('qrImageContainer');
+const neteaseModalClose = document.getElementById('neteaseModalClose');
+
+// Load saved cookie on startup
+function loadNeteaseCookie() {
+  return localStorage.getItem(NETEASE_COOKIE_KEY) || null;
+}
+
+// Save cookie to localStorage
+async function saveNeteaseCookie(cookie) {
+  localStorage.setItem(NETEASE_COOKIE_KEY, cookie);
+  // Also notify server to update in-memory cookie
+  await syncCookieToServer(cookie);
+}
+
+// Clear cookie
+function clearNeteaseCookie() {
+  localStorage.removeItem(NETEASE_COOKIE_KEY);
+}
+
+// Update UI based on login state
+function updateNeteaseUI(loggedIn, userId = null) {
+  neteaseState.loggedIn = loggedIn;
+  neteaseState.userId = userId;
+  
+  if (loggedIn) {
+    neteaseStatus.classList.add('logged-in');
+    neteaseStatusText.textContent = '已登录 (UID: ' + (userId || '?') + ')';
+    neteaseLoginBtn.textContent = '重新登录';
+    neteaseLoginBtn.onclick = openNeteaseLogin;
+    
+    // Add logout button
+    if (!document.getElementById('neteaseLogoutBtn')) {
+      const logoutBtn = document.createElement('button');
+      logoutBtn.type = 'button';
+      logoutBtn.className = 'netease-btn logout-btn';
+      logoutBtn.id = 'neteaseLogoutBtn';
+      logoutBtn.textContent = '退出登录';
+      logoutBtn.onclick = logoutNetease;
+      neteaseActions.appendChild(logoutBtn);
+    }
+  } else {
+    neteaseStatus.classList.remove('logged-in');
+    neteaseStatusText.textContent = '未登录';
+    neteaseLoginBtn.textContent = '登录网易云';
+    neteaseLoginBtn.onclick = openNeteaseLogin;
+    
+    // Remove logout button if exists
+    const logoutBtn = document.getElementById('neteaseLogoutBtn');
+    if (logoutBtn) logoutBtn.remove();
+  }
+}
+
+// Open login modal
+function openNeteaseLogin() {
+  // Reset state
+  riskAgree.checked = false;
+  riskNotice.classList.remove('expanded');
+  qrDisplay.style.display = 'none';
+  qrLoading.style.display = 'flex';
+  // Reset loading HTML to original spinner
+  qrLoading.innerHTML = '<div class="qr-spinner"></div><p>正在获取二维码...</p>';
+  neteaseModalOverlay.classList.add('visible');
+}
+
+// Toggle risk notice expand/collapse
+riskToggle.addEventListener('click', () => {
+  riskNotice.classList.toggle('expanded');
+});
+
+// Handle risk agreement checkbox
+riskAgree.addEventListener('change', () => {
+  if (riskAgree.checked) {
+    startQrLogin();
+  }
+});
+
+// Close modal
+function closeNeteaseModal() {
+  neteaseModalOverlay.classList.remove('visible');
+  stopQrPolling();
+}
+
+// Start QR login flow
+async function startQrLogin() {
+  qrLoading.style.display = 'flex';
+  qrDisplay.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/netease/qr/key', { method: 'POST' });
+    const data = await res.json();
+
+    if (!data.key) {
+      qrLoading.innerHTML = '<p>获取二维码失败，请重试</p>';
+      return;
+    }
+
+    neteaseState.qrKey = data.key;
+    qrLoading.style.display = 'none';
+    qrDisplay.style.display = 'block';
+
+    // Display QR code
+    if (data.qrImg) {
+      qrImageContainer.innerHTML = `<img src="${data.qrImg}" alt="登录二维码">`;
+    } else if (data.qrUrl) {
+      qrImageContainer.innerHTML = `<p style="color:rgba(255,255,255,.7);font-size:12px;">无法显示二维码，请<a href="${data.qrUrl}" target="_blank" style="color:#c20c0c;">点击打开链接</a>扫码</p>`;
+    } else {
+      qrImageContainer.innerHTML = '<p style="color:rgba(255,255,255,.5);font-size:12px;">二维码生成失败</p>';
+    }
+
+    qrStatus.textContent = '请使用网易云音乐 App 扫码';
+
+    // Start polling
+    pollQrStatus();
+
+  } catch (err) {
+    console.error('[netease-qr]', err);
+    qrLoading.innerHTML = '<p>网络错误，请重试</p>';
+  }
+}
+
+// Poll QR status
+async function pollQrStatus() {
+  if (!neteaseState.qrKey) return;
+  
+  stopQrPolling();
+  
+  neteaseState.pollTimer = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/netease/qr/check/${neteaseState.qrKey}`);
+      const data = await res.json();
+      
+      switch (data.code) {
+        case 801:
+          qrStatus.textContent = '请使用网易云音乐 App 扫码';
+          break;
+        case 802:
+          qrStatus.textContent = '已扫码，请在 App 中确认登录';
+          break;
+        case 803:
+          qrStatus.textContent = '登录成功！';
+          // Save cookie
+          if (data.cookie) {
+            saveNeteaseCookie(data.cookie);
+          }
+          // Get user info
+          checkNeteaseStatus();
+          // Close modal after short delay
+          setTimeout(() => {
+            closeNeteaseModal();
+          }, 1000);
+          break;
+        case 800:
+          qrStatus.textContent = '二维码已过期，请重新获取';
+          stopQrPolling();
+          break;
+        default:
+          qrStatus.textContent = data.message || '未知状态';
+      }
+      
+    } catch (err) {
+      console.error('[netease-poll]', err);
+    }
+  }, 2500);
+}
+
+// Stop polling
+function stopQrPolling() {
+  if (neteaseState.pollTimer) {
+    clearInterval(neteaseState.pollTimer);
+    neteaseState.pollTimer = null;
+  }
+}
+
+// Logout
+async function logoutNetease() {
+  clearNeteaseCookie();
+  updateNeteaseUI(false);
+  
+  // Also notify server
+  try {
+    await fetch('/api/netease/logout', { method: 'POST' });
+  } catch (err) {
+    console.error('[netease-logout]', err);
+  }
+}
+
+// Check login status with saved cookie
+async function checkNeteaseStatus() {
+  const cookie = loadNeteaseCookie();
+
+  if (!cookie) {
+    updateNeteaseUI(false);
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/netease/status', {
+      headers: { 'X-Netease-Cookie': cookie }
+    });
+    const data = await res.json();
+
+    if (data.loggedIn) {
+      updateNeteaseUI(true, data.userId);
+      // Re-sync cookie to server memory (in case server restarted)
+      syncCookieToServer(cookie);
+    } else {
+      // Cookie might be expired
+      clearNeteaseCookie();
+      updateNeteaseUI(false);
+    }
+  } catch (err) {
+    console.error('[netease-status]', err);
+    updateNeteaseUI(false);
+  }
+}
+
+// Sync cookie to server (used on login and page refresh)
+async function syncCookieToServer(cookie) {
+  try {
+    await fetch('/api/netease/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookie })
+    });
+  } catch (err) {
+    console.error('[netease] Failed to sync cookie to server:', err);
+  }
+}
+
+// Event listeners
+neteaseLoginBtn.addEventListener('click', openNeteaseLogin);
+neteaseModalClose.addEventListener('click', closeNeteaseModal);
+neteaseModalOverlay.addEventListener('click', (e) => {
+  if (e.target === neteaseModalOverlay) closeNeteaseModal();
+});
+
+// Close on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && neteaseModalOverlay.classList.contains('visible')) {
+    closeNeteaseModal();
+  }
+});
+
+// Initialize on load
+checkNeteaseStatus();
 </script>
 </body>
 </html>

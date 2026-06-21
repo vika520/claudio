@@ -1,10 +1,13 @@
-﻿const DEFAULT_TIMEOUT_MS = 8000;
-const { getNeteaseConfig, redactSensitiveText } = require('./netease-session');
+const DEFAULT_TIMEOUT_MS = 8000;
+const { getNeteaseConfig, redactSensitiveText, getCurrentUserCookie } = require('./netease-session');
 
 function getConfig() {
-  const { baseUrl, cookie } = getNeteaseConfig();
+  const { baseUrl, cookie: fallbackCookie } = getNeteaseConfig();
+  // Prefer user-specific in-memory cookie, fall back to env/local config
+  const cookie = getCurrentUserCookie() || fallbackCookie || '';
   return { baseUrl, cookie };
 }
+
 
 function withTimeout(signal, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const controller = new AbortController();

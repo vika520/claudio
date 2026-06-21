@@ -1,7 +1,7 @@
 # Claudio FM
 
 **Claudio FM is a private AI radio station.**  
-**Claudio FM 是一个 AI 私人电台。**
+**Claudio FM 是一个 AI 私人电台 [https://myfm.work/](https://myfm.work/)。**
 
 > **Attribution / 致谢**
 >

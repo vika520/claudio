@@ -364,9 +364,6 @@ QQMUSIC_API_BASE=https://a.y.qq.com   # 默认值,除非走代理否则不用改
 (Git 忽略),注入到 DJ 的 prompt,作为"优先选曲清单"。如果推荐里某首歌
 在网易云找不到,DJ 会自由选曲兜底。
 
-<<<<<<< HEAD
-申请地址:<https://y.qq.com/n/ryqq_v2/qqmusic_skills>
-=======
 #### 如何获取 QQ Music Skills API Key
 
 1. 浏览器打开 <https://y.qq.com/n/ryqq_v2/qqmusic_skills>,用你想让
@@ -415,6 +412,6 @@ QQMUSIC_API_BASE=https://a.y.qq.com   # 默认值,除非走代理否则不用改
 
 ## 当前版本
 
-`v1.1.1` 是单人电台版本。
+`v1.2.0` 是单人电台版本。
 
 它面向一个本地听众体验：一个私人电台、一个本地播放会话，以及一个在后台运营节目的 AI DJ。

@@ -175,25 +175,25 @@ core Claudio flow depends on it.
 
 ## Recent Updates
 
-### v1.2.0 (2026-06-21) — 网易云音乐登录与多用户 taste 隔离
+### v1.2.0 (2026-06-21) — Netease QR Login & Per-User Taste Isolation / 网易云音乐登录与多用户 taste 隔离
 
-**新功能：**
-- **网易云音乐 QR 扫码登录**
-  - 前端弹窗显示二维码，支持扫码状态实时更新
-  - 登录状态显示在 Tweaks 面板（已登录 / 未登录）
-  - 支持重新登录和退出登录
-  - ![网易云音乐登录状态](assets/netease-login-status.png)
+**New Features / 新功能：**
+- **Netease Cloud Music QR Login / 网易云音乐 QR 扫码登录**
+  - Frontend modal with real-time QR scan status / 前端弹窗显示二维码，支持扫码状态实时更新
+  - Login status shown in Tweaks panel (logged-in / not-logged-in) / 登录状态显示在 Tweaks 面板（已登录 / 未登录）
+  - Re-login and logout support / 支持重新登录和退出登录
+  - ![Netease Login Status / 网易云音乐登录状态](assets/netease-login-status.png)
 
-- **多用户 taste.md 隔离**
-  - 按网易云 UID 存储个性化品味文件
-  - 路径：`data/netease/taste/{userId}_taste.md`
-  - 未登录用户使用默认模板，登录后自动加载个人 taste
-  - ![YOUR TASTE 面板](assets/your-taste-panel.png)
+- **Per-User Taste Isolation / 多用户 taste.md 隔离**
+  - Taste files stored per Netease UID / 按网易云 UID 存储个性化品味文件
+  - Path: `data/netease/taste/{userId}_taste.md` / 路径：`data/netease/taste/{userId}_taste.md`
+  - Default template for guests; personal taste auto-loaded after login / 未登录用户使用默认模板，登录后自动加载个人 taste
+  - ![YOUR TASTE Panel / YOUR TASTE 面板](assets/your-taste-panel.png)
 
-**修复：**
-- **修复 dotenv 加载问题**：使用绝对路径确保 `.env` 正确加载，解决 `LLM_PROVIDER` 配置不生效问题
-- **修复 text/plain 请求解析**：添加 `express.text()` 中间件，支持 YOUR TASTE 保存到服务器
-- **调试日志**：添加 taste 加载路径追踪，便于排查多用户隔离问题
+**Fixes / 修复：**
+- **Fixed dotenv loading**: uses absolute path so `.env` loads correctly; fixes `LLM_PROVIDER` not taking effect / 修复 dotenv 加载问题：使用绝对路径确保 `.env` 正确加载，解决 `LLM_PROVIDER` 配置不生效问题
+- **Fixed text/plain parsing**: added `express.text()` middleware so YOUR TASTE saves to server correctly / 修复 text/plain 请求解析：添加 `express.text()` 中间件，支持 YOUR TASTE 保存到服务器
+- **Debug logging**: added taste-load path tracing to help debug multi-user isolation / 调试日志：添加 taste 加载路径追踪，便于排查多用户隔离问题
 
 ---
 

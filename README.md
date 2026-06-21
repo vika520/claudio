@@ -15,7 +15,7 @@
 > Recent changes in this fork (cookie trim, clear-play-history, heart/favorite
 > button, 鸡汤妹 Chinese voice preset, startup ordering, bridge reliability
 > fixes, deployment hardening) are listed in [Recent Updates](#recent-updates)
-> below.
+> / [最近更新](#最近更新) below.
 
 It acts like a real DJ: it chooses music, speaks on air, bridges between songs, and keeps the station going based on your taste and the current moment.
 
@@ -228,7 +228,7 @@ core Claudio flow depends on it.
 
 ## Current Version
 
-`v1.1.1` is the single-user radio version.
+`v1.2.0` is the single-user radio version.
 
 It is designed for one local listener experience: one private station, one local playback session, and one AI DJ running the show.
 

@@ -175,6 +175,28 @@ core Claudio flow depends on it.
 
 ## Recent Updates
 
+### v1.2.0 (2026-06-21) — 网易云音乐登录与多用户 taste 隔离
+
+**新功能：**
+- **网易云音乐 QR 扫码登录**
+  - 前端弹窗显示二维码，支持扫码状态实时更新
+  - 登录状态显示在 Tweaks 面板（已登录 / 未登录）
+  - 支持重新登录和退出登录
+  - ![网易云音乐登录状态](assets/netease-login-status.png)
+
+- **多用户 taste.md 隔离**
+  - 按网易云 UID 存储个性化品味文件
+  - 路径：`data/netease/taste/{userId}_taste.md`
+  - 未登录用户使用默认模板，登录后自动加载个人 taste
+  - ![YOUR TASTE 面板](assets/your-taste-panel.png)
+
+**修复：**
+- **修复 dotenv 加载问题**：使用绝对路径确保 `.env` 正确加载，解决 `LLM_PROVIDER` 配置不生效问题
+- **修复 text/plain 请求解析**：添加 `express.text()` 中间件，支持 YOUR TASTE 保存到服务器
+- **调试日志**：添加 taste 加载路径追踪，便于排查多用户隔离问题
+
+---
+
 - **Cookie handling rewrite**: trimming the saved login cookie to just
   `MUSIC_U` + `__csrf` so `/login/status` actually recognizes the VIP account.
   Previously the full QR-login blob made Netease report an anonymous user and

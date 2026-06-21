@@ -22,6 +22,30 @@ const {
 } = require('./netease-session');
 const app = express();
 const server = http.createServer(app);
+
+// Security middleware
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      scriptSrc: ["'self'"],
+    },
+  },
+}));
+
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+}));
+
 const wss = new WebSocketServer({ server, path: '/stream' });
 
 app.use(express.json());
@@ -1049,8 +1073,13 @@ app.post('/api/netease/logout', (req, res) => {
 });
 
 // Serve cached TTS files
+const SAFE_TTS_FILENAME = /^[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$/;
 app.get('/api/tts/:filename', (req, res) => {
-  const file = path.join(__dirname, 'cache/tts', req.params.filename);
+  const filename = req.params.filename;
+  if (!SAFE_TTS_FILENAME.test(filename)) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
+  const file = path.join(__dirname, 'cache/tts', filename);
   if (!fs.existsSync(file)) return res.status(404).end();
   res.sendFile(file);
 });

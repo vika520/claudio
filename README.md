@@ -63,7 +63,21 @@ Claudio FM relies on a sibling project for streaming music from Netease:
 
 **`NeteaseCloudMusicApi`** — a Node.js service that exposes the Netease
 Web/Cloud API over HTTP on port `3000`. This repo does **not** vendor it; you
-need to place it next to `claudio-fm/`:
+can either install it locally or let Claudio auto-download it on first run.
+
+### Option 1: Auto (recommended / 推荐)
+
+Do nothing. When you run `yarn start`, Claudio will automatically download and
+launch the latest `NeteaseCloudMusicApi` via `npx`. Requires `npx` on your
+`PATH` and a working internet connection.
+
+```bash
+yarn start
+```
+
+### Option 2: Local install (optional / 可选)
+
+If you prefer a local copy (faster startup, offline use, or custom config):
 
 ```bash
 # from the parent directory that will hold both projects
@@ -82,8 +96,7 @@ parent-dir/
 
 `scripts/start.js` looks for `../NeteaseCloudMusicApi/node_modules/NeteaseCloudMusicApi/app.js`
 first, waits for its `/inner/version` endpoint, then launches Claudio. If the
-sidecar is not present, it falls back to `npx NeteaseCloudMusicApi@latest`
-(requires `npx` on `PATH` and a working internet connection).
+sidecar is not present, it falls back to `npx NeteaseCloudMusicApi@latest`.
 
 Install dependencies:
 

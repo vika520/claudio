@@ -4,7 +4,6 @@ const path = require('path');
 const DATA_DIR = path.join(__dirname, 'data', 'netease');
 const QQ_CACHE_PATH = path.join(DATA_DIR, 'qq-recommendations.json');
 const QQ_API_BASE = process.env.QQMUSIC_API_BASE || 'https://a.y.qq.com';
-const QQ_API_KEY = process.env.QQMUSIC_API_KEY || '';
 const SKILL_VERSION = '0.0.2';
 
 function ensureDataDir() {
@@ -12,12 +11,13 @@ function ensureDataDir() {
 }
 
 async function callQQ(path, params = {}) {
-  if (!QQ_API_KEY) throw new Error('QQMUSIC_API_KEY not set');
+  const apiKey = process.env.QQMUSIC_API_KEY || '';
+  if (!apiKey) throw new Error('QQMUSIC_API_KEY not set');
   const url = new URL(path, QQ_API_BASE + '/');
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${QQ_API_KEY}`,
+      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ params, comm: { skill_version: SKILL_VERSION } }),
@@ -39,7 +39,8 @@ async function fetchDailyMix() {
  * Returns { count, fetchedAt } or { error }.
  */
 async function refreshRecommendations() {
-  if (!QQ_API_KEY) {
+  const apiKey = process.env.QQMUSIC_API_KEY || '';
+  if (!apiKey) {
     return { error: 'QQMUSIC_API_KEY not set' };
   }
   try {

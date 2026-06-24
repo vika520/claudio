@@ -23,9 +23,6 @@ const {
 const app = express();
 const server = http.createServer(app);
 
-// Trust proxy (Nginx) to get real client IP
-app.set('trust proxy', 1);
-
 // Security middleware
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -36,23 +33,13 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "blob:"],
+      imgSrc: ["'self'", "data:", "blob:", "https://p1.music.126.net", "https://p2.music.126.net", "https://p3.music.126.net", "https://p4.music.126.net"],
       mediaSrc: ["'self'", "http://*.music.126.net", "https://*.music.126.net"],
-      connectSrc: ["'self'", "ws:", "wss:"],
+      connectSrc: ["'self'", "ws:", "wss:", "https://*.music.126.net", "http://*.music.126.net"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
     },
   },
 }));
-
-// Rate limiter for API routes only
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  keyGenerator: (req) => req.ip,
-  skip: () => false,
-  message: { error: 'Too many requests, please try again later.' },
-  validate: { keyGeneratorIpFallback: false },
-});
 
 const wss = new WebSocketServer({ server, path: '/stream' });
 
@@ -60,8 +47,18 @@ app.use(express.json());
 app.use(express.text({ type: 'text/plain' }));
 app.use(express.static(path.join(__dirname, 'pwa')));
 
-// Apply rate limit only to /api/* routes
-app.use('/api', apiLimiter);
+// Trust proxy (Nginx) to get real client IP for rate limiting
+app.set('trust proxy', 1);
+
+// Rate limit API routes only (after static files)
+app.use('/api', rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.ip, // use the IP from trust proxy
+}));
 
 // ── WebSocket broadcast ──────────────────────────────────────────────────────
 const clients = new Set();

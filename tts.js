@@ -286,7 +286,7 @@ async function synthesizeMinimax(text, outPath, options = {}) {
     body: JSON.stringify({
       model,
       text,
-      stream: false,
+      stream: true,  // 开启流式模式
       voice_setting: {
         voice_id: voiceId,
         speed: 1,
@@ -299,7 +299,7 @@ async function synthesizeMinimax(text, outPath, options = {}) {
         bitrate: 128000,
         channel: 1,
       },
-      output_format: 'hex',
+      // 移除 output_format: 'hex'，流式模式直接返回音频数据
     }),
   });
 
@@ -308,20 +308,35 @@ async function synthesizeMinimax(text, outPath, options = {}) {
     throw new Error(`MiniMax TTS error ${res.status}: ${err}`);
   }
 
-  const result = await res.json();
-
-  if (result.base_resp && result.base_resp.status_code !== 0) {
-    throw new Error(`MiniMax TTS error ${result.base_resp.status_code}: ${result.base_resp.status_msg}`);
+  // 流式模式：读取完整响应体然后解析 SSE
+  const responseText = await res.text();
+  
+  const audioChunks = [];
+  const lines = responseText.split('\n');
+  
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('data:')) {
+      const jsonStr = trimmed.slice(5).trim();
+      if (jsonStr && jsonStr !== '[DONE]') {
+        try {
+          const msg = JSON.parse(jsonStr);
+          if (msg.data && msg.data.audio) {
+            audioChunks.push(Buffer.from(msg.data.audio, 'hex'));
+          }
+        } catch (e) {
+          // 忽略解析失败的行
+        }
+      }
+    }
   }
-
-  // Response: result.data.audio contains hex-encoded audio
-  if (result.data && result.data.audio) {
-    const audioBuffer = Buffer.from(result.data.audio, 'hex');
-    fs.writeFileSync(outPath, audioBuffer);
-    return outPath;
+  
+  if (!audioChunks.length) {
+    throw new Error('MiniMax TTS stream returned no audio data');
   }
-
-  throw new Error('MiniMax TTS returned no audio data');
+  
+  fs.writeFileSync(outPath, Buffer.concat(audioChunks));
+  return outPath;
 }
 
 module.exports = { synthesize, cachePath };

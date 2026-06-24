@@ -279,74 +279,87 @@ function getTtsVoiceForLanguage(language) {
 
 async function synthesizeSegments(segments, djLanguage = 'en') {
   const { voiceType, resourceId } = getTtsVoiceForLanguage(djLanguage);
+  const provider = process.env.TTS_PROVIDER || 'volcengine';
 
   // 收集所有需要合成的文本段落
   const speakableSegments = segments.filter(s => s.type !== 'silence' && s.text);
   if (!speakableSegments.length) return segments;
 
-  // 合并所有文本为一段，用适当停顿分隔
-  const mergedText = speakableSegments.map(s => s.text).join('。');
-  const mergedPreview = mergedText.slice(0, 50) + (mergedText.length > 50 ? '…' : '');
-  console.log(`[TTS] 合并合成 ${speakableSegments.length} 段 (${mergedText.length} 字): "${mergedPreview}"`);
+  // 只有 minimax 需要合并合成（解决流式响应分段重复 MP3 头导致播放两次的问题）
+  // 其他 provider（volcengine/fish/kokoro）保持逐段合成，支持更灵活的播放控制
+  const shouldMerge = provider === 'minimax';
 
-  try {
-    const startAt = Date.now();
-    const f = await synthesize(mergedText, { voiceType, resourceId });
-    const mergedTtsUrl = '/api/tts/' + path.basename(f);
-    console.log(`[TTS] 合并完成 (${((Date.now() - startAt) / 1000).toFixed(1)}s) → ${path.basename(f)}`);
+  if (shouldMerge) {
+    // 合并所有文本为一段，用适当停顿分隔
+    const mergedText = speakableSegments.map(s => s.text).join('。');
+    const mergedPreview = mergedText.slice(0, 50) + (mergedText.length > 50 ? '…' : '');
+    console.log(`[TTS] 合并合成 ${speakableSegments.length} 段 (${mergedText.length} 字): "${mergedPreview}"`);
 
-    // 计算每个段落在合并文本中的时间比例（按字数比例估算）
-    const totalChars = speakableSegments.reduce((sum, s) => sum + (s.text?.length || 0), 0);
-    let charOffset = 0;
-    const segmentRanges = speakableSegments.map(s => {
-      const start = totalChars > 0 ? charOffset / totalChars : 0;
-      const end = totalChars > 0 ? (charOffset + (s.text?.length || 0)) / totalChars : 0;
-      charOffset += (s.text?.length || 0);
-      return { id: s.id, start, end };
-    });
+    try {
+      const startAt = Date.now();
+      const f = await synthesize(mergedText, { voiceType, resourceId });
+      const mergedTtsUrl = '/api/tts/' + path.basename(f);
+      console.log(`[TTS] 合并完成 (${((Date.now() - startAt) / 1000).toFixed(1)}s) → ${path.basename(f)}`);
 
-    // 将合成的音频 URL 赋给第一个可播放段落
-    // 其他段落标记为已处理（silent），避免前端尝试播放不存在的音频
-    let assigned = false;
-    for (const segment of segments) {
-      if (segment.type === 'silence' || !segment.text) {
-        segment.status = 'silent';
-        continue;
+      // 计算每个段落在合并文本中的时间比例（按字数比例估算）
+      const totalChars = speakableSegments.reduce((sum, s) => sum + (s.text?.length || 0), 0);
+      let charOffset = 0;
+      const segmentRanges = speakableSegments.map(s => {
+        const start = totalChars > 0 ? charOffset / totalChars : 0;
+        const end = totalChars > 0 ? (charOffset + (s.text?.length || 0)) / totalChars : 0;
+        charOffset += (s.text?.length || 0);
+        return { id: s.id, start, end };
+      });
+
+      // 将合成的音频 URL 赋给第一个可播放段落
+      let assigned = false;
+      for (const segment of segments) {
+        if (segment.type === 'silence' || !segment.text) {
+          segment.status = 'silent';
+          continue;
+        }
+        if (!assigned) {
+          segment.ttsUrl = mergedTtsUrl;
+          segment.status = 'ready';
+          segment._mergedText = mergedText;
+          segment._segmentRanges = segmentRanges;
+          assigned = true;
+        } else {
+          segment.status = 'merged';
+          segment.ttsUrl = null;
+        }
       }
-      if (!assigned) {
-        // 第一个有文本的段落获得合并后的音频
-        segment.ttsUrl = mergedTtsUrl;
-        segment.status = 'ready';
-        segment._mergedText = mergedText; // 记录完整文本用于前端字幕
-        segment._segmentRanges = segmentRanges; // 记录每个段落的时间比例
-        assigned = true;
-      } else {
-        // 后续段落标记为已合并到前一段
-        segment.status = 'merged';
-        segment.ttsUrl = null;
-      }
+    } catch (err) {
+      console.error(`[TTS] 合并合成失败:`, err.message);
+      // 回退：逐段合成
+      await synthesizeSegmentsIndividually(segments, voiceType, resourceId);
     }
-  } catch (err) {
-    console.error(`[TTS] 合并合成失败:`, err.message);
-    // 回退：逐段合成
-    for (const segment of segments) {
-      if (segment.type === 'silence' || !segment.text) {
-        segment.status = 'silent';
-        continue;
-      }
-      try {
-        console.log(`[TTS] 回退合成 ${segment.type} (${segment.text.length} 字): "${segment.text.slice(0, 50)}…"`);
-        const f = await synthesize(segment.text, { voiceType, resourceId });
-        segment.ttsUrl = '/api/tts/' + path.basename(f);
-        segment.status = 'ready';
-      } catch (err2) {
-        segment.status = 'tts_failed';
-        segment.error = err2.message;
-      }
-    }
+  } else {
+    // 逐段合成（volcengine/fish/kokoro 等）
+    await synthesizeSegmentsIndividually(segments, voiceType, resourceId);
   }
 
   return segments;
+}
+
+async function synthesizeSegmentsIndividually(segments, voiceType, resourceId) {
+  for (const segment of segments) {
+    if (segment.type === 'silence' || !segment.text) {
+      segment.status = 'silent';
+      continue;
+    }
+    try {
+      console.log(`[TTS] 合成 ${segment.type} (${segment.text.length} 字): "${segment.text.slice(0, 50)}…"`);
+      const f = await synthesize(segment.text, { voiceType, resourceId });
+      segment.ttsUrl = '/api/tts/' + path.basename(f);
+      segment.status = 'ready';
+      console.log(`[TTS] ${segment.type} 完成 → ${path.basename(f)}`);
+    } catch (err) {
+      segment.status = 'tts_failed';
+      segment.error = err.message;
+      console.error(`[TTS] ${segment.type} 合成失败:`, err.message);
+    }
+  }
 }
 
 function applyLegacyTrackIntrosFromSegments(tracks, segments) {

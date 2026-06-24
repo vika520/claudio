@@ -27,7 +27,7 @@ function synthesize(text, options = {}) {
   }
 
   const preview = text.slice(0, 40) + (text.length > 40 ? '…' : '');
-  console.log(`[TTS] 合成中 (${provider}${options.role ? `/${options.role}` : ''})："${preview}"`);
+  console.log(`[TTS] 合成中 (${provider}${options.role ? `/${options.role}` : ''})：“${preview}”`);
   const startAt = Date.now();
 
   let promise;
@@ -35,6 +35,8 @@ function synthesize(text, options = {}) {
     promise = synthesizeVolcengine(text, cached, options);
   } else if (provider === 'fish') {
     promise = synthesizeFish(text, cached, options);
+  } else if (provider === 'minimax') {
+    promise = synthesizeMinimax(text, cached, options);
   } else {
     promise = synthesizeKokoro(text, cached, options);
   }
@@ -48,6 +50,14 @@ function synthesize(text, options = {}) {
 function getVoiceForProvider(provider, options = {}) {
   if (provider === 'fish') return options.voiceId || process.env.FISH_VOICE_ID || '';
   if (provider === 'volcengine') return options.voiceType || process.env.VOLCENGINE_TTS_VOICE_TYPE || '';
+  if (provider === 'minimax') {
+    // 根据语言选择音色：zh 用 female-chengshu，其他用 Santa_Claus
+    const lang = options.lang || 'zh';
+    if (lang === 'zh' || lang === 'cn') {
+      return options.voiceId || process.env.MINIMAX_TTS_VOICE_ID_ZH || 'female-chengshu';
+    }
+    return options.voiceId || process.env.MINIMAX_TTS_VOICE_ID_EN || 'Santa_Claus';
+  }
   return options.voice || process.env.KOKORO_VOICE || '';
 }
 
@@ -255,6 +265,63 @@ async function synthesizeKokoro(text, outPath, options = {}) {
   const buffer = Buffer.from(await res.arrayBuffer());
   fs.writeFileSync(outPath, buffer);
   return outPath;
+}
+
+async function synthesizeMinimax(text, outPath, options = {}) {
+  const apiKey = options.apiKey || process.env.MINIMAX_TTS_API_KEY || process.env.MINIMAX_API_KEY;
+  const model = options.model || process.env.MINIMAX_TTS_MODEL || 'speech-2.8-hd';
+  const voiceId = options.voiceId || process.env.MINIMAX_TTS_VOICE_ID || 'male-qn-qingse';
+
+  if (!apiKey) {
+    throw new Error('MINIMAX_TTS_API_KEY or MINIMAX_API_KEY not set');
+  }
+
+  const endpoint = 'https://api.minimax.chat/v1/t2a_v2';
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      text,
+      stream: false,
+      voice_setting: {
+        voice_id: voiceId,
+        speed: 1,
+        vol: 1,
+        pitch: 0,
+      },
+      audio_setting: {
+        format: 'mp3',
+        sample_rate: 32000,
+        bitrate: 128000,
+        channel: 1,
+      },
+      output_format: 'hex',
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    throw new Error(`MiniMax TTS error ${res.status}: ${err}`);
+  }
+
+  const result = await res.json();
+
+  if (result.base_resp && result.base_resp.status_code !== 0) {
+    throw new Error(`MiniMax TTS error ${result.base_resp.status_code}: ${result.base_resp.status_msg}`);
+  }
+
+  // Response: result.data.audio contains hex-encoded audio
+  if (result.data && result.data.audio) {
+    const audioBuffer = Buffer.from(result.data.audio, 'hex');
+    fs.writeFileSync(outPath, audioBuffer);
+    return outPath;
+  }
+
+  throw new Error('MiniMax TTS returned no audio data');
 }
 
 module.exports = { synthesize, cachePath };

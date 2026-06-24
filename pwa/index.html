@@ -2601,6 +2601,8 @@ ttsAudio.addEventListener('timeupdate', () => advanceKaraoke(ttsAudio.currentTim
 
 /* ── Transcript ───────────────────────────────────────────────────── */
 let karaokeWords = [];
+let mergedSegmentRanges = null; // 存储合并段落的时间范围
+let mergedTurns = []; // 存储合并播放时的多个 turn 元素
 
 function transcriptTokens(text) {
   return [...String(text || '').matchAll(/(\s+)|([\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}])|([^\s\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]+)/gu)]
@@ -2616,12 +2618,17 @@ function scrollTranscriptToBottom(behavior = 'smooth') {
   });
 }
 
-function addTurn(speaker, text, timeLabel = 'now') {
+function addTurn(speaker, text, timeLabel = 'now', segmentRange = null) {
   if (emptyState) emptyState.remove();
   const displayTime = typeof timeLabel === 'number' ? fmt(timeLabel) : timeLabel;
 
   const turn = document.createElement('div');
   turn.className = 'turn active';
+  // 如果有 segmentRange，记录到 dataset 用于后续高亮
+  if (segmentRange) {
+    turn.dataset.segStart = segmentRange.start;
+    turn.dataset.segEnd = segmentRange.end;
+  }
 
   const head = document.createElement('div');
   head.className = 'turn-head';
@@ -2655,7 +2662,7 @@ function addTurn(speaker, text, timeLabel = 'now') {
   });
 
   scrollTranscriptToBottom();
-  return karaokeWords.length;
+  return { turn, wordCount: karaokeWords.length };
 }
 
 function resetProgramClock() {
@@ -2667,13 +2674,52 @@ function programTimeLabel() {
   return fmt(Math.max(0, (Date.now() - programClockStartedAt) / 1000));
 }
 
-function addSegmentTurn(segment) {
-  return addTurn('Claudio', segment.text || '', programTimeLabel());
+function addSegmentTurn(segment, segmentRange = null) {
+  return addTurn('Claudio', segment.text || '', programTimeLabel(), segmentRange);
 }
 
 function advanceKaraoke(cur, dur) {
-  if (!karaokeWords.length || dur <= 0) return;
+  if (dur <= 0) return;
   const pct = cur / dur;
+
+  // 如果有合并段落范围，按段落高亮
+  if (mergedSegmentRanges && mergedTurns.length > 0) {
+    // 找到当前播放进度对应的段落
+    mergedTurns.forEach((turnInfo, idx) => {
+      const range = mergedSegmentRanges[idx];
+      if (!range) return;
+      const turn = turnInfo.turn;
+      const body = turn.querySelector('.turn-body');
+      if (!body) return;
+
+      // 判断当前播放进度是否在这个段落的时间范围内
+      if (pct >= range.start && pct < range.end) {
+        // 当前段落：高亮
+        turn.classList.add('active');
+        // 计算段落内的进度比例
+        const segmentPct = (pct - range.start) / (range.end - range.start);
+        const words = body.querySelectorAll('.word');
+        const wordIdx = Math.min(Math.floor(segmentPct * words.length), words.length - 1);
+        words.forEach((el, i) => {
+          if (i < wordIdx) el.className = 'word said';
+          else if (i === wordIdx) el.className = 'word current';
+          else el.className = 'word future';
+        });
+      } else if (pct >= range.end) {
+        // 已播放过的段落：全部标记为 said
+        turn.classList.remove('active');
+        const words = body.querySelectorAll('.word');
+        words.forEach(el => el.className = 'word said');
+      } else {
+        // 未播放的段落：保持 future
+        turn.classList.remove('active');
+      }
+    });
+    return;
+  }
+
+  // 默认单段高亮逻辑
+  if (!karaokeWords.length) return;
   const total = karaokeWords.length;
   const currentIdx = Math.min(Math.floor(pct * total), total - 1);
   karaokeWords.forEach(({ el }, i) => {
@@ -2684,6 +2730,17 @@ function advanceKaraoke(cur, dur) {
 }
 
 function finishKaraoke() {
+  // 合并模式下，标记所有段落为已完成
+  if (mergedTurns.length > 0) {
+    mergedTurns.forEach(({ turn }) => {
+      turn.classList.remove('active');
+      const words = turn.querySelectorAll('.word');
+      words.forEach(el => el.className = 'word said');
+    });
+    mergedSegmentRanges = null;
+    mergedTurns = [];
+    return;
+  }
   karaokeWords.forEach(({ el }) => {
     el.className = 'word said';
   });
@@ -2850,26 +2907,37 @@ function speakSegmentSequence(segments, onEnd) {
   const pending = segments.filter(segment => segment && !wasSegmentHandled(segment));
   if (pending.some(segment => segment.resetClockOnSpeak)) resetProgramClock();
 
-  // 检查是否有合并音频：找到第一个带 ttsUrl 的段落
-  const mergedSegment = pending.find(s => s.ttsUrl && s._mergedText);
+  // 检查是否有合并音频：找到第一个带 ttsUrl 且带 _segmentRanges 的段落
+  const mergedSegment = pending.find(s => s.ttsUrl && s._segmentRanges);
   if (mergedSegment) {
-    // 合并模式：只播放一次音频，但显示所有段落的文本
-    const allText = mergedSegment._mergedText;
-    // 显示所有 pending 段落的文本
-    for (const seg of pending) {
+    // 合并模式：只播放一次音频，但显示所有段落的文本并支持分段高亮
+    const ranges = mergedSegment._segmentRanges;
+    mergedSegmentRanges = ranges;
+    mergedTurns = [];
+
+    // 显示所有 pending 段落的文本，并记录每个 turn 用于高亮
+    for (let i = 0; i < pending.length; i++) {
+      const seg = pending[i];
       if (!wasSegmentHandled(seg)) {
         markSegmentHandled(seg);
         if (seg.text && seg.type !== 'silence') {
-          addSegmentTurn(seg);
+          const range = ranges.find(r => r.id === seg.id);
+          const result = addSegmentTurn(seg, range);
+          mergedTurns.push({ turn: result.turn, wordCount: result.wordCount });
         }
       }
     }
+
     // 播放合并后的音频一次
     lastTtsUrl = mergedSegment.ttsUrl;
     lastReplaySegment = mergedSegment;
     replayBtn.style.display = '';
     ttsAudio.src = mergedSegment.ttsUrl;
-    if (onEnd) ttsAudio.addEventListener('ended', onEnd, { once: true });
+    if (onEnd) ttsAudio.addEventListener('ended', () => {
+      mergedSegmentRanges = null;
+      mergedTurns = [];
+      onEnd();
+    }, { once: true });
     ttsAudio.play().catch(err => { console.error(err); afterTtsFinished(); if (onEnd) onEnd(); });
     return;
   }

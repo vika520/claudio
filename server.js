@@ -295,6 +295,16 @@ async function synthesizeSegments(segments, djLanguage = 'en') {
     const mergedTtsUrl = '/api/tts/' + path.basename(f);
     console.log(`[TTS] 合并完成 (${((Date.now() - startAt) / 1000).toFixed(1)}s) → ${path.basename(f)}`);
 
+    // 计算每个段落在合并文本中的时间比例（按字数比例估算）
+    const totalChars = speakableSegments.reduce((sum, s) => sum + (s.text?.length || 0), 0);
+    let charOffset = 0;
+    const segmentRanges = speakableSegments.map(s => {
+      const start = totalChars > 0 ? charOffset / totalChars : 0;
+      const end = totalChars > 0 ? (charOffset + (s.text?.length || 0)) / totalChars : 0;
+      charOffset += (s.text?.length || 0);
+      return { id: s.id, start, end };
+    });
+
     // 将合成的音频 URL 赋给第一个可播放段落
     // 其他段落标记为已处理（silent），避免前端尝试播放不存在的音频
     let assigned = false;
@@ -308,6 +318,7 @@ async function synthesizeSegments(segments, djLanguage = 'en') {
         segment.ttsUrl = mergedTtsUrl;
         segment.status = 'ready';
         segment._mergedText = mergedText; // 记录完整文本用于前端字幕
+        segment._segmentRanges = segmentRanges; // 记录每个段落的时间比例
         assigned = true;
       } else {
         // 后续段落标记为已合并到前一段

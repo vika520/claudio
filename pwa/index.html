@@ -1685,9 +1685,9 @@ html, body {
         <!-- Meta (existing) -->
         <div class="meta">
           <div class="session-title" id="sessionTitle"></div>
-          <div class="meta-name" id="metaName">Your private radio station</div>
+          <div class="meta-name" id="metaName" data-i18n="Your private radio station">Your private radio station</div>
           <div class="meta-sub">
-            <span id="metaSub">Waiting for Claudio…</span>
+            <span id="metaSub" data-i18n="Waiting for Claudio…">Waiting for Claudio…</span>
             <span class="meta-source" id="metaSource" style="display:none">
               <svg width="11" height="11" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
                 <path d="M11.2 1.8v6.9c0 1.4-1 2.4-2.3 2.4-1.2 0-2.1-.8-2.1-1.9 0-1.1 1-1.9 2.1-1.9.4 0 .8.1 1.1.3V3.9L5.9 5.2v5.1c0 1.4-1 2.4-2.3 2.4-1.2 0-2.1-.8-2.1-1.9 0-1.1 1-1.9 2.1-1.9.4 0 .8.1 1.1.3V2.6l6.5-.8z"/>
@@ -1787,30 +1787,30 @@ html, body {
 </button>
 
 <!-- Request line toggle -->
-<button class="chat-toggle" id="chatToggle" aria-label="Open request line" title="Request line">
+<button class="chat-toggle" id="chatToggle" aria-label="Open request line" title="Request line" data-i18n="Open request line">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M6.6 10.8c1.2-1.2 2.7-1.8 4.4-1.8s3.2.6 4.4 1.8"/>
     <path d="M3.7 7.8C5.6 5.9 8.2 5 11 5s5.4.9 7.3 2.8"/>
     <path d="M9.6 14.1c.4-.4.9-.6 1.4-.6s1 .2 1.4.6"/>
     <path d="M11 18h.01"/>
   </svg>
-  <span class="chat-toggle-label">Request line</span>
+  <span class="chat-toggle-label" data-i18n="Request line">Request line</span>
 </button>
 
 <!-- Your Taste toggle -->
-<button class="chat-toggle taste-toggle" id="tasteToggle" aria-label="Open your taste" title="Your taste">
+<button class="chat-toggle taste-toggle" id="tasteToggle" aria-label="Open your taste" title="Your taste" data-i18n="Open your taste">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M9 18V5l12-2v13"/>
     <circle cx="6" cy="18" r="3"/>
     <circle cx="18" cy="16" r="3"/>
   </svg>
-  <span class="chat-toggle-label">Your taste</span>
+  <span class="chat-toggle-label" data-i18n="Your taste">Your taste</span>
 </button>
 
 <!-- Chat bar -->
 <div class="chat-bar hidden" id="chatBar">
-  <textarea id="chat-input" rows="1" placeholder="Leave a note for Claudio…"></textarea>
-  <button id="chat-send" title="Patch in" aria-label="Patch in">
+  <textarea id="chat-input" rows="1" placeholder="Leave a note for Claudio…" data-i18n="Leave a note for Claudio…"></textarea>
+  <button id="chat-send" title="Patch in" aria-label="Patch in" data-i18n="Patch in">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M5 12h13"/>
       <path d="m13 6 6 6-6 6"/>
@@ -1821,8 +1821,8 @@ html, body {
 <!-- Taste panel -->
 <div class="taste-panel hidden" id="tastePanel">
   <div class="taste-panel-header">
-    <h3>Your Taste</h3>
-    <button type="button" class="taste-panel-close" id="tastePanelClose" aria-label="Close">
+    <h3 data-i18n="Your Taste">Your Taste</h3>
+    <button type="button" class="taste-panel-close" id="tastePanelClose" aria-label="Close" data-i18n="Close">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
@@ -1988,6 +1988,245 @@ html, body {
 <audio id="music-audio" preload="auto"></audio>
 
 <script>
+/* ── i18n ─────────────────────────────────────────────────────────── */
+const I18N = {
+  en: {
+    'Your private radio station': 'Your private radio station',
+    'Waiting for Claudio…': 'Waiting for Claudio…',
+    'Request line': 'Request line',
+    'Your taste': 'Your taste',
+    'Leave a note for Claudio…': 'Leave a note for Claudio…',
+    'Patch in': 'Patch in',
+    'Your Taste': 'YOUR TASTE',
+    'Music taste': 'Music taste',
+    'Save taste': 'Save taste',
+    'Enable QQ Music daily recommendations': 'Enable QQ Music daily recommendations',
+    'Enter QQ Music Skills API Key (qmk-...)': 'Enter QQ Music Skills API Key (qmk-...)',
+    'Save': 'Save',
+    'How to get API Key?': 'How to get API Key?',
+    'Tweaks': 'TWEAKS',
+    'Netease Cloud Music': 'Netease Cloud Music',
+    'Not logged in': 'Not logged in',
+    'Please log in to Netease Cloud Music to start playing': 'Please log in to Netease Cloud Music to start playing',
+    'Log in to Netease': 'Log in to Netease',
+    'Skin': 'Skin',
+    'Cosmic': 'Cosmic',
+    'Glass': 'Glass',
+    'DJ language': 'DJ language',
+    'English': 'English',
+    '中文': '中文',
+    'DJ volume': 'DJ volume',
+    'Music volume': 'Music volume',
+    'Play history': 'Play history',
+    'Clear play history': 'Clear play history',
+    'Header tone': 'Header tone',
+    'Blue hue': 'Blue hue',
+    'Violet hue': 'Violet hue',
+    'Log in to Netease Cloud Music': 'Log in to Netease Cloud Music',
+    'Please scan with Netease Cloud Music App': 'Please scan with Netease Cloud Music App',
+    'On Air': 'On Air',
+    'Speaking': 'Speaking',
+    'Playing': 'Playing',
+    'Paused': 'Paused',
+    'replay': '↩ replay',
+    'Now Playing': 'Now Playing',
+    'Up Next': 'Up Next',
+    'Hide info panel': 'Hide info panel',
+    'Show info panel': 'Show info panel',
+    'Open request line': 'Open request line',
+    'Open your taste': 'Open your taste',
+    'Toggle tweaks': 'Toggle tweaks',
+    'Close': 'Close',
+    'Enter fullscreen': 'Enter fullscreen',
+    'Fullscreen': 'Fullscreen',
+    'Play / pause music': 'Play / pause music',
+    'Please log in to Netease Cloud Music to save taste': 'Please log in to Netease Cloud Music to save taste',
+    'Please enter music taste description': 'Please enter music taste description',
+    'Login expired, please log in to Netease Cloud Music again': 'Login expired, please log in to Netease Cloud Music again',
+    'Saved successfully': 'Saved successfully',
+    'Save failed': 'Save failed',
+  },
+  zh: {
+    'Your private radio station': '你的私人AI电台',
+    'Waiting for Claudio…': '等待 Claudio…',
+    'Request line': '点歌连线',
+    'Your taste': '你的品味',
+    'Leave a note for Claudio…': '给 Claudio 留个言…',
+    'Patch in': '接入',
+    'Your Taste': '你的品味',
+    'Music taste': '音乐品味描述',
+    'Save taste': '保存品味',
+    'Enable QQ Music daily recommendations': '启用 QQ 音乐每日推荐',
+    'Enter QQ Music Skills API Key (qmk-...)': '输入 QQ Music Skills API Key (qmk-...)',
+    'Save': '保存',
+    'How to get API Key?': '如何获取 API Key？',
+    'Tweaks': '设置',
+    'Netease Cloud Music': '网易云音乐',
+    'Not logged in': '未登录',
+    'Please log in to Netease Cloud Music to start playing': '请先登录网易云音乐以开始播放',
+    'Log in to Netease': '登录网易云',
+    'Skin': '皮肤',
+    'Cosmic': 'Cosmic',
+    'Glass': 'Glass',
+    'DJ language': 'DJ 语言',
+    'English': 'English',
+    '中文': '中文',
+    'DJ volume': 'DJ 音量',
+    'Music volume': '音乐音量',
+    'Play history': '播放历史',
+    'Clear play history': '清除播放历史',
+    'Header tone': '顶部色调',
+    'Blue hue': '蓝色色调',
+    'Violet hue': '紫色色调',
+    'Log in to Netease Cloud Music': '登录网易云音乐',
+    'Please scan with Netease Cloud Music App': '请使用网易云音乐 App 扫码',
+    'On Air': '直播中',
+    'Speaking': '口播中',
+    'Playing': '播放中',
+    'Paused': '已暂停',
+    'replay': '↩ 重播',
+    'Now Playing': '正在播放',
+    'Up Next': '即将播放',
+    'Hide info panel': '隐藏信息面板',
+    'Show info panel': '显示信息面板',
+    'Open request line': '打开点歌连线',
+    'Open your taste': '打开你的品味',
+    'Toggle tweaks': '切换设置',
+    'Close': '关闭',
+    'Enter fullscreen': '进入全屏',
+    'Fullscreen': '全屏',
+    'Play / pause music': '播放/暂停音乐',
+    'Please log in to Netease Cloud Music to save taste': '请先登录网易云音乐以保存品味',
+    'Please enter music taste description': '请输入音乐品味描述',
+    'Login expired, please log in to Netease Cloud Music again': '登录已过期，请重新登录网易云音乐',
+    'Saved successfully': '保存成功',
+    'Save failed': '保存失败',
+  }
+};
+
+function t(key) {
+  const lang = djLanguage === 'zh' ? 'zh' : 'en';
+  return I18N[lang][key] || key;
+}
+
+function updateAllUI() {
+  // 更新所有需要国际化的 UI 元素
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      if (el.placeholder) el.placeholder = t(key);
+    } else if (el.tagName === 'BUTTON') {
+      if (el.title) el.title = t(key);
+      if (el.getAttribute('aria-label')) el.setAttribute('aria-label', t(key));
+      // 如果按钮内有文本节点，更新文本内容
+      const textNode = Array.from(el.childNodes).find(n => n.nodeType === 3 && n.textContent.trim());
+      if (textNode) textNode.textContent = t(key);
+    } else {
+      el.textContent = t(key);
+    }
+  });
+
+  // 更新没有 data-i18n 但通过 ID 可访问的元素
+  const metaNameEl = document.getElementById('metaName');
+  if (metaNameEl) metaNameEl.textContent = t('Your private radio station');
+
+  const chatInput = document.getElementById('chat-input');
+  if (chatInput) chatInput.placeholder = t('Leave a note for Claudio…');
+
+  const chatSend = document.getElementById('chat-send');
+  if (chatSend) {
+    chatSend.title = t('Patch in');
+    chatSend.setAttribute('aria-label', t('Patch in'));
+  }
+
+  const tastePanelHeader = document.querySelector('.taste-panel-header h3');
+  if (tastePanelHeader) tastePanelHeader.textContent = t('Your Taste');
+
+  const tasteLabel = document.querySelector('.taste-section .taste-label');
+  if (tasteLabel) tasteLabel.textContent = t('Music taste');
+
+  const tasteSaveBtn = document.getElementById('tasteSaveBtn');
+  if (tasteSaveBtn) tasteSaveBtn.textContent = t('Save taste');
+
+  const qqRecommendToggle = document.querySelector('#qqRecommendToggle');
+  if (qqRecommendToggle) {
+    const span = qqRecommendToggle.closest('label')?.querySelector('span');
+    if (span) span.textContent = t('Enable QQ Music daily recommendations');
+  }
+
+  const qqApiKeyInput = document.getElementById('qqApiKeyInput');
+  if (qqApiKeyInput) qqApiKeyInput.placeholder = t('Enter QQ Music Skills API Key (qmk...)');
+
+  const qqApiKeySaveBtn = document.getElementById('qqApiKeySaveBtn');
+  if (qqApiKeySaveBtn) qqApiKeySaveBtn.textContent = t('Save');
+
+  const tasteHelpToggle = document.getElementById('tasteHelpToggle');
+  if (tasteHelpToggle) {
+    const span = tasteHelpToggle.querySelector('span:last-child');
+    if (span) span.textContent = t('How to get API Key?');
+  }
+
+  const tweaksToggle = document.getElementById('tweaksToggle');
+  if (tweaksToggle) tweaksToggle.setAttribute('aria-label', t('Toggle tweaks'));
+
+  const tweaksTitle = document.querySelector('.tweaks h3');
+  if (tweaksTitle) tweaksTitle.textContent = t('Tweaks');
+
+  const neteaseSection = document.querySelector('.netease-section h4');
+  if (neteaseSection) neteaseSection.textContent = t('Netease Cloud Music');
+
+  const neteaseStatusText = document.getElementById('neteaseStatusText');
+  if (neteaseStatusText) neteaseStatusText.textContent = t('Not logged in');
+
+  const neteaseLoginHint = document.getElementById('neteaseLoginHint');
+  if (neteaseLoginHint) neteaseLoginHint.textContent = t('Please log in to Netease Cloud Music to start playing');
+
+  const neteaseLoginBtn = document.getElementById('neteaseLoginBtn');
+  if (neteaseLoginBtn) neteaseLoginBtn.textContent = t('Log in to Netease');
+
+  const clearPlaysBtn = document.getElementById('clearPlaysBtn');
+  if (clearPlaysBtn) {
+    clearPlaysBtn.textContent = t('Clear play history');
+    clearPlaysBtn.title = t('Forget every track played in the last 24h so Claudio can resurface them');
+  }
+
+  const neteaseModalHeader = document.querySelector('.netease-modal-header h3');
+  if (neteaseModalHeader) neteaseModalHeader.textContent = t('Log in to Netease Cloud Music');
+
+  const qrStatus = document.getElementById('qrStatus');
+  if (qrStatus) qrStatus.textContent = t('Please scan with Netease Cloud Music App');
+
+  // 更新 radio-info-label
+  const radioInfoLabel = document.querySelector('.radio-info-label');
+  if (radioInfoLabel) radioInfoLabel.textContent = t('Now Playing');
+
+  // 更新 queue-title
+  const queueTitle = document.querySelector('.queue-title');
+  if (queueTitle) queueTitle.textContent = t('Up Next');
+
+  // 更新 chat-toggle-label
+  const chatToggleLabel = document.querySelector('#chatToggle .chat-toggle-label');
+  if (chatToggleLabel) chatToggleLabel.textContent = t('Request line');
+
+  const tasteToggleLabel = document.querySelector('#tasteToggle .chat-toggle-label');
+  if (tasteToggleLabel) tasteToggleLabel.textContent = t('Your taste');
+
+  // 更新 tweak-row labels
+  document.querySelectorAll('.tweak-row').forEach(row => {
+    const label = row.querySelector('label');
+    if (!label) return;
+    const text = label.childNodes[0]?.textContent?.trim();
+    if (text === 'Skin') label.childNodes[0].textContent = t('Skin') + ' ';
+    else if (text === 'DJ language') label.childNodes[0].textContent = t('DJ language') + ' ';
+    else if (text === 'DJ volume') label.childNodes[0].textContent = t('DJ volume') + ' ';
+    else if (text === 'Music volume') label.childNodes[0].textContent = t('Music volume') + ' ';
+    else if (text === 'Play history') label.childNodes[0].textContent = t('Play history') + ' ';
+    else if (text === 'Header tone') label.childNodes[0].textContent = t('Header tone') + ' ';
+    else if (text === 'Blue hue') label.childNodes[0].textContent = t('Blue hue') + ' ';
+    else if (text === 'Violet hue') label.childNodes[0].textContent = t('Violet hue') + ' ';
+  });
+}
+
 /* ── Refs ─────────────────────────────────────────────────────────── */
 const ttsAudio   = document.getElementById('tts-audio');
 const musicAudio = document.getElementById('music-audio');
@@ -2097,9 +2336,11 @@ function setDjLanguage(value) {
   djLanguage = value === 'zh' ? 'zh' : 'en';
   localStorage.setItem('claudio:dj-language', djLanguage);
   syncDjLanguageControl();
+  updateAllUI(); // 切换语言时更新所有 UI 文本
 }
 
 syncDjLanguageControl();
+updateAllUI(); // 初始化时根据当前语言更新所有 UI 文本
 
 /* ── Clock ────────────────────────────────────────────────────────── */
 function updateClock() {

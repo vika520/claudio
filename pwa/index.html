@@ -2840,7 +2840,7 @@ function speakSegmentObject(segment, onEnd) {
   lastTtsUrl = segment.ttsUrl;
   lastReplaySegment = segment;
   replayBtn.style.display = '';
-  
+
   ttsAudio.src = segment.ttsUrl;
   if (onEnd) ttsAudio.addEventListener('ended', onEnd, { once: true });
   ttsAudio.play().catch(err => { console.error(err); afterTtsFinished(); if (onEnd) onEnd(); });
@@ -2849,6 +2849,32 @@ function speakSegmentObject(segment, onEnd) {
 function speakSegmentSequence(segments, onEnd) {
   const pending = segments.filter(segment => segment && !wasSegmentHandled(segment));
   if (pending.some(segment => segment.resetClockOnSpeak)) resetProgramClock();
+
+  // 检查是否有合并音频：找到第一个带 ttsUrl 的段落
+  const mergedSegment = pending.find(s => s.ttsUrl && s._mergedText);
+  if (mergedSegment) {
+    // 合并模式：只播放一次音频，但显示所有段落的文本
+    const allText = mergedSegment._mergedText;
+    // 显示所有 pending 段落的文本
+    for (const seg of pending) {
+      if (!wasSegmentHandled(seg)) {
+        markSegmentHandled(seg);
+        if (seg.text && seg.type !== 'silence') {
+          addSegmentTurn(seg);
+        }
+      }
+    }
+    // 播放合并后的音频一次
+    lastTtsUrl = mergedSegment.ttsUrl;
+    lastReplaySegment = mergedSegment;
+    replayBtn.style.display = '';
+    ttsAudio.src = mergedSegment.ttsUrl;
+    if (onEnd) ttsAudio.addEventListener('ended', onEnd, { once: true });
+    ttsAudio.play().catch(err => { console.error(err); afterTtsFinished(); if (onEnd) onEnd(); });
+    return;
+  }
+
+  // 非合并模式：逐段播放
   function playOne() {
     const segment = pending.shift();
     if (!segment) {

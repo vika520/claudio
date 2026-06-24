@@ -37,7 +37,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:"],
-      mediaSrc: ["'self'", "*.music.126.net"],
+      mediaSrc: ["'self'", "http://*.music.126.net", "https://*.music.126.net"],
       connectSrc: ["'self'", "ws:", "wss:"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
     },

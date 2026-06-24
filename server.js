@@ -23,6 +23,9 @@ const {
 const app = express();
 const server = http.createServer(app);
 
+// Trust proxy (Nginx) to get real client IP
+app.set('trust proxy', 1);
+
 // Security middleware
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -34,23 +37,31 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:"],
+      mediaSrc: ["'self'", "*.music.126.net"],
       connectSrc: ["'self'", "ws:", "wss:"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
     },
   },
 }));
 
-app.use(rateLimit({
+// Rate limiter for API routes only
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
+  keyGenerator: (req) => req.ip,
+  skip: () => false,
   message: { error: 'Too many requests, please try again later.' },
-}));
+  validate: { keyGeneratorIpFallback: false },
+});
 
 const wss = new WebSocketServer({ server, path: '/stream' });
 
 app.use(express.json());
 app.use(express.text({ type: 'text/plain' }));
 app.use(express.static(path.join(__dirname, 'pwa')));
+
+// Apply rate limit only to /api/* routes
+app.use('/api', apiLimiter);
 
 // ── WebSocket broadcast ──────────────────────────────────────────────────────
 const clients = new Set();

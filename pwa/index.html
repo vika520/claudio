@@ -2065,7 +2065,7 @@ const inMusicVolume = document.getElementById('inMusicVolume');
 const lblDjVolume = document.getElementById('lblDjVolume');
 const lblMusicVolume = document.getElementById('lblMusicVolume');
 const djLanguageControl = document.getElementById('djLanguageControl');
-let djLanguage = localStorage.getItem('claudio:dj-language') === 'zh' ? 'zh' : 'en';
+let djLanguage = localStorage.getItem('claudio:dj-language') === 'en' ? 'en' : 'zh';
 let djVolume = Number(localStorage.getItem('claudio:dj-volume') || 100) / 100;
 let baseMusicVolume = Number(localStorage.getItem('claudio:music-volume') || 100) / 100;
 let ducking = false;
@@ -3647,7 +3647,7 @@ qqApiKeySaveBtn.addEventListener('click', async () => {
 
 /* ── Skin ─────────────────────────────────────────────────────────── */
 const skinControl = document.getElementById('skinControl');
-let currentSkin = localStorage.getItem('claudio:skin') || 'default';
+let currentSkin = localStorage.getItem('claudio:skin') || 'glass';
 
 function applySkin(name) {
   currentSkin = ['default', 'glass', 'radio'].includes(name) ? name : 'default';

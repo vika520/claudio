@@ -310,10 +310,11 @@ async function synthesizeMinimax(text, outPath, options = {}) {
 
   // 流式模式：读取完整响应体然后解析 SSE
   const responseText = await res.text();
-  
+
   const audioChunks = [];
   const lines = responseText.split('\n');
-  
+  let hasFoundFirstMp3 = false;
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (trimmed.startsWith('data:')) {
@@ -322,7 +323,22 @@ async function synthesizeMinimax(text, outPath, options = {}) {
         try {
           const msg = JSON.parse(jsonStr);
           if (msg.data && msg.data.audio) {
-            audioChunks.push(Buffer.from(msg.data.audio, 'hex'));
+            const chunk = Buffer.from(msg.data.audio, 'hex');
+            // 检测是否是新的 MP3 文件开头（minimax 会分多段发送）
+            // MP3 文件头: ID3 (0x494433) 或 MPEG 帧同步字 (0xFFFB/0xFFF3/0xFFE3)
+            if (chunk.length >= 2) {
+              const isMp3Header = chunk[0] === 0x49 && chunk[1] === 0x44 && chunk[2] === 0x33; // "ID3"
+              const isMpegFrame = chunk[0] === 0xFF && (chunk[1] & 0xE0) === 0xE0; // MPEG sync word
+              if ((isMp3Header || isMpegFrame) && hasFoundFirstMp3) {
+                // 跳过重复的 MP3 文件头，避免拼接后播放两次
+                console.log('[TTS] MiniMax: skipping duplicate MP3 header chunk');
+                continue;
+              }
+              if (isMp3Header || isMpegFrame) {
+                hasFoundFirstMp3 = true;
+              }
+            }
+            audioChunks.push(chunk);
           }
         } catch (e) {
           // 忽略解析失败的行
@@ -330,11 +346,11 @@ async function synthesizeMinimax(text, outPath, options = {}) {
       }
     }
   }
-  
+
   if (!audioChunks.length) {
     throw new Error('MiniMax TTS stream returned no audio data');
   }
-  
+
   fs.writeFileSync(outPath, Buffer.concat(audioChunks));
   return outPath;
 }

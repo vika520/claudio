@@ -325,16 +325,16 @@ async function synthesizeMinimax(text, outPath, options = {}) {
           if (msg.data && msg.data.audio) {
             const chunk = Buffer.from(msg.data.audio, 'hex');
             // 检测是否是新的 MP3 文件开头（minimax 会分多段发送）
-            // MP3 文件头: ID3 (0x494433) 或 MPEG 帧同步字 (0xFFFB/0xFFF3/0xFFE3)
-            if (chunk.length >= 2) {
+            // 只有 ID3 头 (0x494433) 表示新的 MP3 文件开始
+            // MPEG 帧同步字 (0xFFFB) 是正常的音频帧，不应该跳过
+            if (chunk.length >= 3) {
               const isMp3Header = chunk[0] === 0x49 && chunk[1] === 0x44 && chunk[2] === 0x33; // "ID3"
-              const isMpegFrame = chunk[0] === 0xFF && (chunk[1] & 0xE0) === 0xE0; // MPEG sync word
-              if ((isMp3Header || isMpegFrame) && hasFoundFirstMp3) {
+              if (isMp3Header && hasFoundFirstMp3) {
                 // 跳过重复的 MP3 文件头，避免拼接后播放两次
-                console.log('[TTS] MiniMax: skipping duplicate MP3 header chunk');
+                console.log('[TTS] MiniMax: skipping duplicate MP3 ID3 header');
                 continue;
               }
-              if (isMp3Header || isMpegFrame) {
+              if (isMp3Header) {
                 hasFoundFirstMp3 = true;
               }
             }

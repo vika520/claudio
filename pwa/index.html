@@ -3442,7 +3442,9 @@ function setRadioStatus(status) {
   dotLive.style.display = isLive ? '' : 'none';
   radioInfoDot.classList.toggle('live', isLive);
   document.documentElement.classList.toggle('radio-is-live', isLive);
-  window._setWavePlaying(['Speaking', 'Playing'].includes(status));
+  if (typeof window._setWavePlaying === 'function') {
+    window._setWavePlaying(['Speaking', 'Playing'].includes(status));
+  }
 }
 
 function setPlaying(v) {

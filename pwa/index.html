@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Claudio FM — A private radio station</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Doto:wght@400;600&family=Space+Grotesk:wght@300;400&display=swap" rel="stylesheet">
@@ -1635,83 +1638,245 @@ html, body {
 }
 
 .channel-card {
-  width: 120px;
-  height: 160px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(20px);
-  border: 2px solid rgba(255,255,255,0.12);
+  width: 108px;
+  height: 140px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1.5px solid rgba(255,255,255,0.10);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  color: rgba(255,255,255,0.7);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  color: rgba(255,255,255,0.55);
   font-size: 14px;
   font-weight: 500;
   user-select: none;
   position: relative;
   overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.12),
+    0 0 0 1px rgba(255,255,255,0.04) inset;
 }
 
-.channel-card::before {
+/* 顶部渐变光条 */
+.channel-card::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s;
+  top: 0; left: 20%; right: 20%;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  opacity: 0.5;
+  transition: opacity 0.4s, left 0.4s, right 0.4s;
 }
 
+/* 悬浮状态 */
 .channel-card:hover {
-  background: rgba(255,255,255,0.14);
-  border-color: rgba(255,255,255,0.25);
-  transform: translateY(-2px);
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.20);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow:
+    0 12px 32px rgba(0,0,0,0.25),
+    0 0 0 1px rgba(255,255,255,0.08) inset,
+    0 0 60px rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.85);
 }
 
-.channel-card:hover::before {
+.channel-card:hover::after {
   opacity: 1;
+  left: 10%; right: 10%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
 }
 
-.channel-card.active {
-  background: rgba(255,255,255,0.18);
-  border-color: rgba(41,255,184,0.5);
-  box-shadow: 0 0 30px rgba(41,255,184,0.15), inset 0 0 20px rgba(41,255,184,0.05);
+/* Active 状态 - 音乐电台：青绿色 */
+.channel-card.active[data-channel="music"] {
+  background: rgba(41,255,184,0.08);
+  border-color: rgba(41,255,184,0.35);
   color: rgb(255,255,255);
+  box-shadow:
+    0 8px 32px rgba(41,255,184,0.12),
+    0 0 0 1px rgba(41,255,184,0.15) inset,
+    0 0 80px rgba(41,255,184,0.06);
 }
 
-.channel-card.active .channel-icon {
+.channel-card.active[data-channel="music"]::after {
+  opacity: 1;
+  left: 15%; right: 15%;
+  background: linear-gradient(90deg, transparent, rgba(41,255,184,0.6), transparent);
+}
+
+/* Active 状态 - AIHOT：暖橙色 */
+.channel-card.active[data-channel="aihot"] {
+  background: rgba(255,140,60,0.08);
+  border-color: rgba(255,140,60,0.35);
+  color: rgb(255,255,255);
+  box-shadow:
+    0 8px 32px rgba(255,140,60,0.12),
+    0 0 0 1px rgba(255,140,60,0.15) inset,
+    0 0 80px rgba(255,140,60,0.06);
+}
+
+.channel-card.active[data-channel="aihot"]::after {
+  opacity: 1;
+  left: 15%; right: 15%;
+  background: linear-gradient(90deg, transparent, rgba(255,140,60,0.6), transparent);
+}
+
+/* 图标容器 */
+.channel-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: grid;
+  place-items: center;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.channel-card:hover .channel-icon-wrap {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.15);
+  transform: scale(1.08);
+}
+
+.channel-card.active[data-channel="music"] .channel-icon-wrap {
+  background: rgba(41,255,184,0.10);
+  border-color: rgba(41,255,184,0.25);
+}
+
+.channel-card.active[data-channel="aihot"] .channel-icon-wrap {
+  background: rgba(255,140,60,0.10);
+  border-color: rgba(255,140,60,0.25);
+}
+
+/* SVG 图标 */
+.channel-icon-wrap svg {
+  width: 22px;
+  height: 22px;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  opacity: 0.7;
+}
+
+.channel-card:hover .channel-icon-wrap svg {
+  opacity: 0.95;
   transform: scale(1.1);
 }
 
-.channel-icon {
-  font-size: 32px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.channel-card.active .channel-icon-wrap svg {
+  opacity: 1;
 }
 
+/* 图标发光效果 */
+.channel-icon-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.channel-card.active[data-channel="music"] .channel-icon-wrap::before {
+  background: radial-gradient(circle at 50% 50%, rgba(41,255,184,0.15) 0%, transparent 70%);
+  opacity: 1;
+}
+
+.channel-card.active[data-channel="aihot"] .channel-icon-wrap::before {
+  background: radial-gradient(circle at 50% 50%, rgba(255,140,60,0.15) 0%, transparent 70%);
+  opacity: 1;
+}
+
+/* 频道名称 */
 .channel-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  transition: all 0.3s;
 }
 
+/* 左侧脉冲指示器 */
 .channel-indicator {
   position: absolute;
-  left: -8px;
+  left: -1px;
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
-  height: 32px;
-  border-radius: 2px;
-  background: rgb(41,255,184);
+  width: 3px;
+  height: 24px;
+  border-radius: 0 3px 3px 0;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.4s, height 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.channel-card.active .channel-indicator {
+.channel-card.active[data-channel="music"] .channel-indicator {
   opacity: 1;
+  background: linear-gradient(180deg, transparent, rgb(41,255,184), transparent);
+  box-shadow: 0 0 12px rgba(41,255,184,0.5);
+  animation: indicatorPulse 2s ease-in-out infinite;
+}
+
+.channel-card.active[data-channel="aihot"] .channel-indicator {
+  opacity: 1;
+  background: linear-gradient(180deg, transparent, rgb(255,140,60), transparent);
+  box-shadow: 0 0 12px rgba(255,140,60,0.5);
+  animation: indicatorPulse 2s ease-in-out infinite;
+}
+
+@keyframes indicatorPulse {
+  0%, 100% { opacity: 0.6; height: 20px; }
+  50% { opacity: 1; height: 32px; }
+}
+
+/* 频谱动画 - 仅在active时显示 */
+.channel-spectrum {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.channel-card.active .channel-spectrum {
+  opacity: 1;
+}
+
+.channel-spectrum-bar {
+  width: 2.5px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.5;
+  animation: spectrumDance 1.2s ease-in-out infinite;
+}
+
+.channel-card.active[data-channel="music"] .channel-spectrum-bar {
+  background: rgba(41,255,184,0.7);
+}
+
+.channel-card.active[data-channel="aihot"] .channel-spectrum-bar {
+  background: rgba(255,140,60,0.7);
+}
+
+.channel-spectrum-bar:nth-child(1) { height: 4px; animation-delay: 0s; }
+.channel-spectrum-bar:nth-child(2) { height: 8px; animation-delay: 0.15s; }
+.channel-spectrum-bar:nth-child(3) { height: 5px; animation-delay: 0.3s; }
+.channel-spectrum-bar:nth-child(4) { height: 10px; animation-delay: 0.45s; }
+.channel-spectrum-bar:nth-child(5) { height: 6px; animation-delay: 0.6s; }
+
+@keyframes spectrumDance {
+  0%, 100% { transform: scaleY(0.6); opacity: 0.4; }
+  50% { transform: scaleY(1); opacity: 0.8; }
 }
 
 /* Channel switcher responsive */
@@ -1727,8 +1892,25 @@ html, body {
     gap: 12px;
   }
   .channel-card {
-    width: 100px;
-    height: 80px;
+    width: 90px;
+    height: 72px;
+    border-radius: 18px;
+    gap: 6px;
+  }
+  .channel-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+  .channel-icon-wrap svg {
+    width: 16px;
+    height: 16px;
+  }
+  .channel-name {
+    font-size: 11px;
+  }
+  .channel-spectrum {
+    display: none;
   }
   .stage {
     display: flex;
@@ -1838,13 +2020,39 @@ html, body {
   <div class="channel-switcher" id="channelSwitcher">
     <div class="channel-card active" data-channel="music" id="channelMusic">
       <div class="channel-indicator"></div>
-      <div class="channel-icon">🎵</div>
+      <div class="channel-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18V5l12-2v13"/>
+          <circle cx="6" cy="18" r="3"/>
+          <circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
       <div class="channel-name">音乐电台</div>
+      <div class="channel-spectrum">
+        <div class="channel-spectrum-bar"></div>
+        <div class="channel-spectrum-bar"></div>
+        <div class="channel-spectrum-bar"></div>
+        <div class="channel-spectrum-bar"></div>
+        <div class="channel-spectrum-bar"></div>
+      </div>
     </div>
     <div class="channel-card" data-channel="aihot" id="channelAihot">
       <div class="channel-indicator"></div>
-      <div class="channel-icon">🔥</div>
+      <div class="channel-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-2.072-2.143-3-4-.5-1-1-2-1-2s-1.5 2-1.5 4 .5 4 1.5 5.5c.825 1.163 1.5 2 2.5 2z"/>
+          <path d="M13.5 14.5A2.5 2.5 0 0 0 16 12c0-1.38-.5-2-1-3-1.072-2.143-2.072-2.143-3-4-.5-1-1-2-1-2s-1.5 2-1.5 4 .5 4 1.5 5.5c.825 1.163 1.5 2 2.5 2z"/>
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" opacity="0.15" stroke-width="1"/>
+        </svg>
+      </div>
       <div class="channel-name">AIHOT电台</div>
+      <div class="channel-spectrum">
+        <div class="channel-spectrum-bar"></div>
+        <div class="channel-spectrum-bar"></div>
+        <div class="channel-spectrum-bar"></div>
+        <div class="channel-spectrum-bar"></div>
+        <div class="channel-spectrum-bar"></div>
+      </div>
     </div>
   </div>
 
@@ -2539,16 +2747,19 @@ channelCards.forEach(card => {
 
 // Check URL params for direct channel access
 // Supports: ?radio=aihot, ?channel=aihot, ?aihot, ?radio=music
-(function initChannelFromUrl() {
+function initChannelFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const urlChannel = params.get('radio') || params.get('channel');
   const hasAihotFlag = params.has('aihot');
   const targetChannel = urlChannel || (hasAihotFlag ? 'aihot' : null);
 
   if (targetChannel && targetChannel !== currentChannel) {
+    console.log('[channel] URL param detected, switching to:', targetChannel);
     setChannel(targetChannel);
+    return true;
   }
-})();
+  return false;
+}
 
 /* ── AIHOT Channel ────────────────────────────────────────────────── */
 const aihotAudio = document.createElement('audio');
@@ -2776,6 +2987,10 @@ const heartIcon = document.getElementById('heartIcon');
 let currentSongId = null;
 const likedSongIds = new Set();
 const likedSongKeys = new Set();
+
+// Initialize channel from URL params after all refs are ready
+// Supports: ?radio=aihot, ?channel=aihot, ?aihot, ?radio=music
+const urlSwitched = initChannelFromUrl();
 
 function setHeartLiked(songId, liked) {
   if (songId && liked) likedSongIds.add(songId);

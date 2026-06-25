@@ -1621,6 +1621,208 @@ html, body {
 .meta-like-btn.liked svg path {
   fill: rgb(220,80,80);
 }
+
+/* ── Channel Switcher ─────────────────────────────────────────────── */
+.channel-switcher {
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 10;
+}
+
+.channel-card {
+  width: 120px;
+  height: 160px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(255,255,255,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  font-weight: 500;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.channel-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.channel-card:hover {
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.25);
+  transform: translateY(-2px);
+}
+
+.channel-card:hover::before {
+  opacity: 1;
+}
+
+.channel-card.active {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(41,255,184,0.5);
+  box-shadow: 0 0 30px rgba(41,255,184,0.15), inset 0 0 20px rgba(41,255,184,0.05);
+  color: rgb(255,255,255);
+}
+
+.channel-card.active .channel-icon {
+  transform: scale(1.1);
+}
+
+.channel-icon {
+  font-size: 32px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.channel-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.channel-indicator {
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+  background: rgb(41,255,184);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.channel-card.active .channel-indicator {
+  opacity: 1;
+}
+
+/* Channel switcher responsive */
+@media (max-width: 900px) {
+  .channel-switcher {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    flex-direction: row;
+    justify-content: center;
+    padding: 12px 0;
+    gap: 12px;
+  }
+  .channel-card {
+    width: 100px;
+    height: 80px;
+  }
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 20px;
+    gap: 12px;
+  }
+  .card {
+    margin: 0 auto;
+  }
+}
+
+/* Card channel transition animation */
+.card.channel-transition {
+  animation: cardChannelSwitch 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes cardChannelSwitch {
+  0% { transform: scale(1); opacity: 1; }
+  30% { transform: scale(0.96) translateX(10px); opacity: 0.7; }
+  70% { transform: scale(0.96) translateX(-10px); opacity: 0.7; }
+  100% { transform: scale(1) translateX(0); opacity: 1; }
+}
+
+/* Channel slide entrance */
+.channel-slide-enter {
+  animation: channelSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes channelSlideIn {
+  from { opacity: 0; transform: translateX(-30px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* ── AIHOT transcript styling ─────────────────────────────────────── */
+.turn.aihot-item {
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 8px;
+  border-left: 3px solid rgba(41,255,184,0.4);
+}
+
+.turn.aihot-item.active {
+  background: rgba(41,255,184,0.08);
+  border-left-color: rgb(41,255,184);
+}
+
+.aihot-index {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(41,255,184,0.2);
+  color: rgb(41,255,184);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+  margin-right: 6px;
+}
+
+.aihot-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgb(255,255,255);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.turn.aihot-item .turn-body {
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.75);
+}
+
+/* Darken the default turn body for AIHOT items */
+.turn.aihot-item .word.future {
+  color: rgba(255,255,255,0.6);
+}
+
+.turn.aihot-item .word.current {
+  color: rgb(41,255,184);
+  background: rgba(41,255,184,0.15);
+  border-radius: 3px;
+  padding: 1px 2px;
+}
+
+.turn.aihot-item .word.said {
+  color: rgba(255,255,255,0.9);
+}
+
 </style>
 </head>
 <body>
@@ -1631,6 +1833,20 @@ html, body {
   <div class="fluid accent"></div>
   <div class="bg-grain"></div>
   <div class="bg-noise"></div>
+
+  <!-- Channel Switcher -->
+  <div class="channel-switcher" id="channelSwitcher">
+    <div class="channel-card active" data-channel="music" id="channelMusic">
+      <div class="channel-indicator"></div>
+      <div class="channel-icon">🎵</div>
+      <div class="channel-name">音乐电台</div>
+    </div>
+    <div class="channel-card" data-channel="aihot" id="channelAihot">
+      <div class="channel-indicator"></div>
+      <div class="channel-icon">🔥</div>
+      <div class="channel-name">AIHOT电台</div>
+    </div>
+  </div>
 
   <div class="card" id="fmCard">
     <!-- Header -->
@@ -2045,6 +2261,12 @@ const I18N = {
     'Login expired, please log in to Netease Cloud Music again': 'Login expired, please log in to Netease Cloud Music again',
     'Saved successfully': 'Saved successfully',
     'Save failed': 'Save failed',
+    'AIHOT Radio': 'AIHOT Radio',
+    'Hot Topics Podcast': 'Hot Topics Podcast',
+    'Loading hot topics…': 'Loading hot topics…',
+    'Load failed, please try again later': 'Load failed, please try again later',
+    'No content': 'No content',
+    'TTS synthesis failed': 'TTS synthesis failed',
   },
   zh: {
     'Your private radio station': '你的私人AI电台',
@@ -2101,6 +2323,12 @@ const I18N = {
     'Login expired, please log in to Netease Cloud Music again': '登录已过期，请重新登录网易云音乐',
     'Saved successfully': '保存成功',
     'Save failed': '保存失败',
+    'AIHOT Radio': 'AIHOT 电台',
+    'Hot Topics Podcast': '热点话题播客',
+    'Loading hot topics…': '正在加载热点话题…',
+    'Load failed, please try again later': '加载失败，请稍后重试',
+    'No content': '暂无内容',
+    'TTS synthesis failed': '语音合成失败',
   }
 };
 
@@ -2225,6 +2453,304 @@ function updateAllUI() {
     else if (text === 'Blue hue') label.childNodes[0].textContent = t('Blue hue') + ' ';
     else if (text === 'Violet hue') label.childNodes[0].textContent = t('Violet hue') + ' ';
   });
+}
+
+/* ── Channel Switcher ─────────────────────────────────────────────── */
+const CHANNELS = [
+  { id: 'music', name: '音乐电台', nameZh: '音乐电台', icon: '🎵' },
+  { id: 'aihot', name: 'AIHOT电台', nameZh: 'AIHOT电台', icon: '🔥' },
+];
+
+let currentChannel = localStorage.getItem('claudio:channel') || 'music';
+const channelSwitcherEl = document.getElementById('channelSwitcher');
+const channelCards = document.querySelectorAll('.channel-card');
+const fmCard = document.getElementById('fmCard');
+
+function setChannel(channelId) {
+  if (channelId === currentChannel) return;
+
+  // Stop current channel playback
+  if (currentChannel === 'music') {
+    musicAudio.pause();
+    ttsAudio.pause();
+    setRadioStatus('Paused');
+  } else if (currentChannel === 'aihot') {
+    aihotAudio.pause();
+  }
+
+  currentChannel = channelId;
+  localStorage.setItem('claudio:channel', channelId);
+
+  // Update UI
+  channelCards.forEach(card => {
+    const isActive = card.dataset.channel === channelId;
+    card.classList.toggle('active', isActive);
+  });
+
+  // Card transition animation
+  fmCard.classList.add('channel-transition');
+  setTimeout(() => fmCard.classList.remove('channel-transition'), 600);
+
+  // Switch channel content
+  if (channelId === 'music') {
+    switchToMusicChannel();
+  } else if (channelId === 'aihot') {
+    switchToAihotChannel();
+  }
+}
+
+function switchToMusicChannel() {
+  // Update header name
+  const headerName = document.querySelector('.header-name');
+  if (headerName) {
+    headerName.innerHTML = '<div class="header-avatar">C</div>Claudio';
+  }
+
+  // Resume music visual state
+  if (queue.length && queueIdx < queue.length) {
+    syncRadioVisualFromAudio();
+  } else {
+    setRadioVisualState('idle');
+  }
+}
+
+function switchToAihotChannel() {
+  // Update header for AIHOT
+  const headerName = document.querySelector('.header-name');
+  if (headerName) {
+    headerName.innerHTML = '<div class="header-avatar" style="background: linear-gradient(135deg, oklch(0.7 0.2 30), oklch(0.6 0.2 20));">H</div>AIHOT';
+  }
+
+  // Load AIHOT content
+  loadAihotContent();
+}
+
+// Channel card click handlers
+channelCards.forEach(card => {
+  card.addEventListener('click', () => {
+    setChannel(card.dataset.channel);
+  });
+});
+
+// Initialize channel state
+channelCards.forEach(card => {
+  card.classList.toggle('active', card.dataset.channel === currentChannel);
+});
+
+// Check URL params for direct channel access
+// Supports: ?radio=aihot, ?channel=aihot, ?aihot, ?radio=music
+(function initChannelFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const urlChannel = params.get('radio') || params.get('channel');
+  const hasAihotFlag = params.has('aihot');
+  const targetChannel = urlChannel || (hasAihotFlag ? 'aihot' : null);
+
+  if (targetChannel && targetChannel !== currentChannel) {
+    setChannel(targetChannel);
+  }
+})();
+
+/* ── AIHOT Channel ────────────────────────────────────────────────── */
+const aihotAudio = document.createElement('audio');
+aihotAudio.preload = 'auto';
+
+let aihotCurrentContent = null;
+let aihotIsLoading = false;
+
+async function loadAihotContent() {
+  if (aihotIsLoading) return;
+  aihotIsLoading = true;
+
+  // Update UI to loading state
+  metaName.textContent = t('AIHOT Radio');
+  metaSub.textContent = t('Loading hot topics…');
+  setRadioStatus('On Air');
+
+  try {
+    // Fetch content from AIHOT API via local proxy
+    const res = await fetch('/api/aihot', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!res.ok) throw new Error('AIHOT API error: ' + res.status);
+    const data = await res.json();
+
+    aihotCurrentContent = data;
+
+    // Build podcast script from items
+    const items = data.items || [];
+    if (items.length) {
+      const script = items.map((item, i) => {
+        return `${i + 1}. ${item.title}\n${item.summary || ''}`;
+      }).join('\n\n');
+      data.script = script;
+      data.title = 'AI HOT 日报';
+      data.topic = `精选 ${items.length} 条 AI 热点`;
+    }
+
+    // Display content info
+    metaName.textContent = data.title || t('AIHOT Radio');
+    metaSub.textContent = data.topic || t('Hot Topics Podcast');
+
+    // Synthesize TTS via server
+    await playAihotPodcast(data);
+
+  } catch (err) {
+    console.error('[aihot]', err);
+    metaSub.textContent = t('Load failed, please try again later');
+    setRadioStatus('Paused');
+  } finally {
+    aihotIsLoading = false;
+  }
+}
+
+async function playAihotPodcast(data) {
+  if (!data.script && !data.content) {
+    metaSub.textContent = t('No content');
+    return;
+  }
+
+  const text = data.script || data.content;
+
+  try {
+    // Request TTS synthesis from server (use /api/tts/aihot endpoint)
+    const ttsRes = await fetch('/api/tts/aihot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text.slice(0, 3000), lang: djLanguage }),
+    });
+
+    if (!ttsRes.ok) throw new Error('TTS synthesis failed');
+    const ttsData = await ttsRes.json();
+
+    if (ttsData.ttsUrl) {
+      aihotAudio.src = ttsData.ttsUrl;
+      aihotAudio.play().catch(err => {
+        console.error('[aihot-play]', err);
+      });
+
+      // Add transcript with individual items
+      const items = data.items || [];
+      if (items.length) {
+        clearAihotKaraoke();
+        items.forEach((item, i) => {
+          addAihotTurn('AIHOT', item.title, item.summary || '', i);
+        });
+      } else {
+        addTurn('AIHOT', text, 'now');
+      }
+    }
+  } catch (err) {
+    console.error('[aihot-tts]', err);
+    metaSub.textContent = t('TTS synthesis failed');
+  }
+}
+
+// AIHOT audio event handlers
+aihotAudio.addEventListener('play', () => {
+  setRadioStatus('Playing');
+  window._setWavePlaying(true);
+});
+
+aihotAudio.addEventListener('pause', () => {
+  setRadioStatus('Paused');
+  window._setWavePlaying(false);
+});
+
+aihotAudio.addEventListener('ended', () => {
+  setRadioStatus('Paused');
+  window._setWavePlaying(false);
+});
+
+// AIHOT karaoke: track playback progress for word highlighting
+aihotAudio.addEventListener('timeupdate', () => {
+  const dur = aihotAudio.duration || 0;
+  const cur = aihotAudio.currentTime;
+  if (dur > 0) {
+    advanceAihotKaraoke(cur, dur);
+    playerTime.textContent = fmt(cur);
+    updateScrubber(cur / dur);
+  }
+});
+
+/* ── AIHOT Karaoke ────────────────────────────────────────────────── */
+let aihotKaraokeWords = [];
+let aihotKaraokeTurns = [];
+
+function addAihotTurn(speaker, title, summary, index) {
+  if (emptyState) emptyState.remove();
+  const displayTime = 'now';
+
+  const turn = document.createElement('div');
+  turn.className = 'turn aihot-item';
+  turn.dataset.itemIndex = index;
+
+  const head = document.createElement('div');
+  head.className = 'turn-head';
+  head.innerHTML = `<span class="who">${speaker}</span> · <span class="aihot-index">#${index + 1}</span>`;
+  turn.appendChild(head);
+
+  const body = document.createElement('div');
+  body.className = 'turn-body';
+
+  // Title
+  const titleEl = document.createElement('div');
+  titleEl.className = 'aihot-title';
+  titleEl.textContent = title;
+  body.appendChild(titleEl);
+
+  // Summary with karaoke words
+  const tokens = transcriptTokens(summary);
+  const itemWords = [];
+
+  tokens.forEach(token => {
+    if (!token.word) {
+      body.appendChild(document.createTextNode(token.text));
+      return;
+    }
+    const span = document.createElement('span');
+    span.className = 'word future';
+    span.textContent = token.text;
+    body.appendChild(span);
+    itemWords.push({ el: span, idx: aihotKaraokeWords.length + itemWords.length });
+  });
+
+  turn.appendChild(body);
+  transcriptScroll.insertBefore(turn, transcriptScroll.lastElementChild);
+
+  aihotKaraokeWords.push(...itemWords);
+  aihotKaraokeTurns.push({ turn, words: itemWords });
+
+  scrollTranscriptToBottom();
+  return { turn, wordCount: itemWords.length };
+}
+
+function advanceAihotKaraoke(cur, dur) {
+  if (dur <= 0 || !aihotKaraokeWords.length) return;
+  const pct = cur / dur;
+  const total = aihotKaraokeWords.length;
+  const currentIdx = Math.min(Math.floor(pct * total), total - 1);
+
+  aihotKaraokeWords.forEach(({ el }, i) => {
+    if (i < currentIdx) { el.className = 'word said'; }
+    else if (i === currentIdx) { el.className = 'word current'; }
+    else { el.className = 'word future'; }
+  });
+
+  // Highlight active turn
+  aihotKaraokeTurns.forEach(({ turn, words }) => {
+    if (words.length && currentIdx >= words[0].idx && currentIdx <= words[words.length - 1].idx) {
+      turn.classList.add('active');
+    } else {
+      turn.classList.remove('active');
+    }
+  });
+}
+
+function clearAihotKaraoke() {
+  aihotKaraokeWords = [];
+  aihotKaraokeTurns = [];
 }
 
 /* ── Refs ─────────────────────────────────────────────────────────── */
@@ -2767,7 +3293,22 @@ musicAudio.addEventListener('timeupdate', () => {
 });
 
 playBtn.addEventListener('click', async () => {
-  // Check netease login status before playing
+  // AIHOT channel: no netease login required, just toggle aihot audio
+  if (currentChannel === 'aihot') {
+    if (aihotAudio.src && aihotAudio.paused) {
+      aihotAudio.play().catch(console.error);
+      return;
+    }
+    if (!aihotAudio.paused) {
+      aihotAudio.pause();
+      return;
+    }
+    // If no src yet, load content first
+    await loadAihotContent();
+    return;
+  }
+
+  // Music channel: check netease login status before playing
   const neteaseCookie = loadNeteaseCookie();
   if (!neteaseCookie) {
     // Not logged in, open tweaks and show login prompt

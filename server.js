@@ -35,7 +35,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://p1.music.126.net", "https://p2.music.126.net", "https://p3.music.126.net", "https://p4.music.126.net"],
       mediaSrc: ["'self'", "http://*.music.126.net", "https://*.music.126.net"],
-      connectSrc: ["'self'", "ws:", "wss:", "https://*.music.126.net", "http://*.music.126.net"],
+      connectSrc: ["'self'", "ws:", "wss:", "https://*.music.126.net", "http://*.music.126.net", "https://aihot.virxact.com"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
     },
   },
@@ -1025,6 +1025,44 @@ app.post('/api/tts/caller', async (req, res) => {
     res.json({ ttsUrl: '/api/tts/' + path.basename(f) });
   } catch (err) {
     console.error('[caller-tts]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// AIHOT proxy endpoint - forwards requests to aihot.virxact.com
+app.get('/api/aihot', async (req, res) => {
+  try {
+    const response = await fetch('https://aihot.virxact.com/api/public/items?mode=selected&take=10', {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json',
+      },
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error('[aihot-proxy]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// AIHOT TTS endpoint - uses MiniMax with podcast-style voice
+app.post('/api/tts/aihot', async (req, res) => {
+  const text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
+  if (!text) return res.status(400).json({ error: 'text required' });
+  if (text.length > 3000) return res.status(400).json({ error: 'text too long (max 3000 chars)' });
+
+  try {
+    // Use MiniMax TTS with podcast voice settings
+    const f = await synthesize(text, {
+      provider: 'minimax',
+      voiceId: process.env.MINIMAX_TTS_VOICE_ID || 'Chinese (Mandarin)_Radio_Host',
+      lang: req.body?.lang === 'zh' ? 'zh' : 'en',
+    });
+    res.json({ ttsUrl: '/api/tts/' + path.basename(f) });
+  } catch (err) {
+    console.error('[aihot-tts]', err);
     res.status(500).json({ error: err.message });
   }
 });

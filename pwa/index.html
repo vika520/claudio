@@ -2540,6 +2540,9 @@ const I18N = {
   }
 };
 
+// djLanguage must be declared before t() and initChannelFromUrl()
+let djLanguage = localStorage.getItem('claudio:dj-language') === 'en' ? 'en' : 'zh';
+
 function t(key) {
   const lang = djLanguage === 'zh' ? 'zh' : 'en';
   return I18N[lang][key] || key;
@@ -3045,7 +3048,6 @@ const inMusicVolume = document.getElementById('inMusicVolume');
 const lblDjVolume = document.getElementById('lblDjVolume');
 const lblMusicVolume = document.getElementById('lblMusicVolume');
 const djLanguageControl = document.getElementById('djLanguageControl');
-let djLanguage = localStorage.getItem('claudio:dj-language') === 'en' ? 'en' : 'zh';
 let djVolume = Number(localStorage.getItem('claudio:dj-volume') || 100) / 100;
 let baseMusicVolume = Number(localStorage.getItem('claudio:music-volume') || 100) / 100;
 let ducking = false;

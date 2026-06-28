@@ -1234,7 +1234,8 @@ cron.schedule('0 9 * * *', async () => {
 });
 
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-  console.log(`\n[电台] Claudio FM 启动 → http://localhost:${PORT}`);
+const HOST = process.env.HOST || '127.0.0.1';
+server.listen(PORT, HOST, () => {
+  console.log(`\n[电台] Claudio FM 启动 → http://${HOST}:${PORT}`);
   console.log(`[电台] 等待调度器或用户触发…\n`);
 });
